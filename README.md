@@ -1,2 +1,2 @@
 # Database
-KU ITTC CCB Database scripts
+KU ITTC CCB-Python Database scripts
