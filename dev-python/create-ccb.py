@@ -1,4 +1,5 @@
 import sys
+import ConfigParser
 import mysql.connector
 from mysql.connector import errorcode
 
@@ -6,11 +7,12 @@ if len(sys.argv) < 3:
   print "Usage: %s <username> <password>" % __file__
   sys.exit()
 
-DEFAULT_CHARSET = "utf8"
-DB_NAME = "ccb"
+cfg = ConfigParser.ConfigParser()
+cfg.read("config.cfg")
+
 TABLES = {
-  'AID2GIGeneID': (
-    "CREATE TABLE `AID2GIGeneID` ("
+  'Aid2GiGeneidAccessionUniprot': (
+    "CREATE TABLE `Aid2GiGeneidAccessionUniprot` ("
     "`AID` bigint(20) NOT NULL,"
     "`GI` int(11) NOT NULL,"
     "`GeneID` int(11) NOT NULL,"
@@ -90,24 +92,27 @@ TABLES = {
 cnx = mysql.connector.connect(user=sys.argv[1], password=sys.argv[2])
 cursor = cnx.cursor()
 
+# Create the database
 try:
   cursor.execute(
     "CREATE DATABASE %s DEFAULT CHARACTER SET '%s'" % 
-      (DB_NAME, DEFAULT_CHARSET))
-  print("> Database %s successfully created" % DB_NAME)
+      (cfg.get('default','db'), cfg.get('default','charset')))
+  print "> Database %s successfully created" % cfg.get('default','db')
 except mysql.connector.Error as e:
-  print("! Failed creating database: {}".format(e))
+  sys.stderr.write("! Failed creating database: {}\n".format(e))
   sys.exit()
 
+# Access the databse
 try:
-  cursor.execute("use {}".format(DB_NAME))
+  cursor.execute("use {}".format(cfg.get('default','db')))
 except mysql.connector.Error as e:
-  print("! Failed to access database: {}".format(e))
+  sys.stderr.write("! Failed to access database: {}\n".format(e))
   sys.exit()
 
+# Create the tables
 for table, query in TABLES.iteritems():
   try:
     cursor.execute(query)
-    print("> Table %s successfully created" % table)
+    print "> Table %s successfully created" % table
   except mysql.connector.Error as e:
-    print("! Failed creating table: {}".format(e))
+    sys.stderr.write("! Failed creating table: {}\n".format(e))
