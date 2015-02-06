@@ -9,9 +9,9 @@ from mysql.connector import errorcode
 from mysql.connector.constants import ClientFlag
 
 TABLE_NAME = "Aid2GiGeneidAccessionUniprot"
-pcfile = "Aid2GiGeneidAccessionUniprot.gz"
+remfile = "Aid2GiGeneidAccessionUniprot.gz"
+locfile = remfile[:-3]
 pcdir  = "pubchem/Bioassay/Extras"
-locfile = pcfile[:-3]
 server = "ftp.ncbi.nih.gov"
 
 def update(user, passwd, db):
@@ -20,13 +20,14 @@ def update(user, passwd, db):
   ftp = FTP(server)
   ftp.login() # anonymous
   ftp.cwd(pcdir)
-  ftp.retrbinary("RETR %s" % pcfile, open("./data/%s" % pcfile, 'wb').write)
+  ftp.retrbinary("RETR %s" % remfile, open("./data/%s" % remfile, 'wb').write)
   ftp.quit()
-  with gzip.open("%s/data/%s" % (os.getcwd(), pcfile), 'rb') as inf:
+  print "--unzipping files"
+  with gzip.open("%s/data/%s" % (os.getcwd(), remfile), 'rb') as inf:
     with open("%s/data/%s" % (os.getcwd(), locfile), 'w') as outf:
       for line in inf:
         outf.write(line)
-  print "--loading %s into table" % pcfile
+  print "--loading %s into table" % remfile
   cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
   try:
