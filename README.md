@@ -9,5 +9,5 @@ KU ITTC CCB-Python Database scripts
 - makefile      - junk file management
 - data          - data file folder
 - plugins - Each plugin is named after the table it updates)
-- ⋅⋅⋅Aid2GiGeneidAccessionUniprot.py
-- ⋅⋅⋅~~BioassayResults.py~~
+  - Aid2GiGeneidAccessionUniprot.py
+  - ~~BioassayResults.py~~
