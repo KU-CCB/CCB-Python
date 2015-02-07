@@ -11,7 +11,6 @@ KU ITTC CCB-Python Database scripts
 ├── plugins       # database table update scripts (table name = script name)
 │   ├── Aid2GiGeneidAccessionUniprot.py
 │   ├── BioassayResults.py
-│   └── test.py
 ├── README.md
 ├── setup.py      # creates necessary files & folders
 └── update-ccb.py # top-level database update script
