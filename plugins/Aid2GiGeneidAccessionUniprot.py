@@ -53,4 +53,4 @@ if __name__=="__main__":
   if len(sys.argv) < 4:
     print "Usage: %s <username> <password> <database>" % __file__
     sys.exit()
-  update(sys.argv[1], sys.argv[2], sys.arv[3])
+  update(sys.argv[1], sys.argv[2], sys.argv[3])
