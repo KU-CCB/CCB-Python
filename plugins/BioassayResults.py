@@ -14,7 +14,7 @@ from mysql.connector.constants import ClientFlag
 TABLE_NAME = "BioassayResults"
 pcdir = "pubchem/Bioassay/Concise/CSV/Data"
 server = "ftp.ncbi.nih.gov"
-cacheFile = "./plugins/tmp/brcache.txt"
+cacheFile = "./plugins/store/brcache.txt"
 lines = []
 infocache = {}
 
