@@ -32,7 +32,7 @@ def _downloadIfUpdated(ftp, filedata):
 
 def update(user, passwd, db):
   print "plugin: %s" % __name__
-  print "--downloading updated files"
+  print "> downloading updated files"
   if not os.path.exists(cacheFile):
     open(cacheFile, 'w').close()
   with open(cacheFile, 'r') as inf:
@@ -50,12 +50,12 @@ def update(user, passwd, db):
     for key,value in infocache.iteritems():
       outf.write("%s %s\n" % (key, value))
   sys.exit()
-#   print "--unzipping files"
+#   print "> unzipping files"
 #   with gzip.open("%s/data/%s" % (os.getcwd(), remfile), 'rb') as inf:
 #     with open("%s/data/%s" % (os.getcwd(), locfile), 'w') as outf:
 #       for line in inf:
 #         outf.write(line)
-#   print "--loading %s into table" % remfile
+#   print "> loading %s into table" % remfile
 #   cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
 #   cursor = cnx.cursor()
 #   try:
@@ -75,7 +75,7 @@ def update(user, passwd, db):
 #   except mysql.connector.Error as e:
 #     sys.stderr.write("Failed loading data: {}\n".format(e))
 #     return
-#   print "--%s complete" % __name__
+#   print "> %s complete" % __name__
 
 if __name__=="__main__":
   if len(sys.argv) < 4:
