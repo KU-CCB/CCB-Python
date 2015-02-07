@@ -1,13 +1,18 @@
 # Database
 KU ITTC CCB-Python Database scripts
 
-#### Directory Tree
-*dev-python*
-- create-ccb.py - creates the database
-- update-ccb.py - calls updates for all plugins in dev-python/plugins
-- makefile      - junk file management
-- data          - data file folder
-- config.cfg    - configuration file for database scripts
-- plugins       - Each plugin is named after the table it updates)
-  - Aid2GiGeneidAccessionUniprot.py
-  - ~~BioassayResults.py~~
+#### Structure
+```sh
+.
+├── config.cfg    # configuration file for database scripts
+├── create-ccb.py # creates the database
+├── data          # data file folder
+├── makefile      # junk file management
+├── plugins       # database table update scripts (table name = script name)
+│   ├── Aid2GiGeneidAccessionUniprot.py
+│   ├── BioassayResults.py
+│   └── test.py
+├── README.md
+├── setup.py      # creates necessary files & folders
+└── update-ccb.py # top-level database update script
+```
