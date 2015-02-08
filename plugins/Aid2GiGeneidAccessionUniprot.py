@@ -9,9 +9,9 @@ from mysql.connector import errorcode
 from mysql.connector.constants import ClientFlag
 
 TABLE_NAME = "Aid2GiGeneidAccessionUniprot"
-pcfile = "Aid2GiGeneidAccessionUniprot.gz"
-pcdir  = "pubchem/Bioassay/Extras"
-locfile = pcfile[:-3]
+pubchemFile = "Aid2GiGeneidAccessionUniprot.gz"
+pubchemDir  = "pubchem/Bioassay/Extras"
+localFile = pubchemFile[:-3]
 server = "ftp.ncbi.nih.gov"
 
 def update(user, passwd, db):
@@ -19,15 +19,15 @@ def update(user, passwd, db):
   print "> downloading files"
   ftp = FTP(server)
   ftp.login() # anonymous
-  ftp.cwd(pcdir)
-  ftp.retrbinary("RETR %s" % pcfile, open("./data/%s" % pcfile, 'wb').write)
+  ftp.cwd(pubchemDir)
+  ftp.retrbinary("RETR %s" % pubchemFile, open("./data/%s" % localFile, 'wb').write)
   ftp.quit()
   print "> extracting files"
-  with gzip.open("%s/data/%s" % (os.getcwd(), pcfile), 'rb') as inf:
-    with open("%s/data/%s" % (os.getcwd(), locfile), 'w') as outf:
+  with gzip.open("%s/data/%s" % (os.getcwd(), localFile), 'rb') as inf:
+    with open("%s/data/%s" % (os.getcwd(), localFile), 'w') as outf:
       for line in inf:
         outf.write(line)
-  print "> loading %s into table" % pcfile
+  print "> loading %s into table" % localFile
   cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
   try:
@@ -43,7 +43,7 @@ def update(user, passwd, db):
         " GeneID,"
         " Accession,"
         " UniProtKB_ACID);"  % 
-        (os.getcwd(), locfile, TABLE_NAME))
+        (os.getcwd(), localFile, TABLE_NAME))
   except mysql.connector.Error as e:
     sys.stderr.write("x Failed loading data: {}\n".format(e))
     return
