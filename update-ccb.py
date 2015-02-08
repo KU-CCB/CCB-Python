@@ -12,6 +12,6 @@ if len(sys.argv) < 3:
 user, passwd = sys.argv[1], sys.argv[2]
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
-#plugins.Bioassays.update(user, passwd, cfg.get('default', 'db'))
+plugins.Bioassays.update(user, passwd, cfg.get('default', 'db'))
 plugins.Compounds.update(user, passwd, cfg.get('default', 'db'))
-#plugins.Aid2GiGeneidAccessionUniprot.update(user, passwd, cfg.get('default','db'))
+plugins.Aid2GiGeneidAccessionUniprot.update(user, passwd, cfg.get('default','db'))
