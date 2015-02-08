@@ -25,8 +25,8 @@ TABLES = {
     ") ENGINE=MyISAM DEFAULT CHARSET=latin1;"
   ),
 
-  'BioassayResults': (
-    "CREATE TABLE `BioassayResults` ("
+  'Bioassays': (
+    "CREATE TABLE `Bioassays` ("
     "`SID` int(15) NOT NULL DEFAULT '0',"
     "`CID` int(15) NOT NULL DEFAULT '0',"
     "`Activity_Outcome` varchar(15) DEFAULT NULL,"
@@ -45,18 +45,8 @@ TABLES = {
     ") ENGINE=MyISAM AUTO_INCREMENT=227601852 DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED"
   ),
 
-  'Bioassays': (
-    "CREATE TABLE `Bioassays` ("
-    "`AID` bigint(20) NOT NULL DEFAULT '0',"
-    "`Assay_type` varchar(20) DEFAULT NULL,"
-    "`Target` varchar(300) DEFAULT NULL,"
-    "PRIMARY KEY (`AID`),"
-    "UNIQUE KEY `AID` (`AID`)"
-    ") ENGINE=MyISAM DEFAULT CHARSET=latin1"
-  ),
-
-  'ChemicalAttributes': (
-    "CREATE TABLE `ChemicalAttributes` ("
+  'Compounds': (
+    "CREATE TABLE `Compounds` ("
     "`CID` int(11) NOT NULL,"
     "`NumAtoms` smallint(5) unsigned NOT NULL,"
     "`NumBonds` mediumint(8) unsigned NOT NULL,"
