@@ -6,77 +6,94 @@ import sys
 import os
 from ftplib import FTP
 from datetime import date
+import zipfile
 import gzip
 import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector.constants import ClientFlag
 
-TABLE_NAME = "BioassayResults"
-pcdir = "pubchem/Bioassay/Concise/CSV/Data"
+__all__ = ["update"]
+
+plugin = __name__[__name__.index('.')+1:]
+TABLE_NAME = "Bioassays"
 server = "ftp.ncbi.nih.gov"
-cacheFile = "./plugins/store/brcache.txt"
-lines = []
-infocache = {}
+pubchemDir = "pubchem/Bioassay/Concise/CSV/Data"
+localDir = "./data/assays"
+localUnzippedDir = "./data/assays/unzipped"
+localRawDir = "./data/assays/ungzipped"
+localDataFile = "./data/assays/fullData.csv"
+header = ("PUBCHEM_AID,PUBCHEM_SID,PUBCHEM_CID,PUBCHEM_ACTIVITY_OUTCOME,PUBCHEM_ACTIVITY_SCORE,PUBCHEM_ACTIVITY_URL,PUBCHEM_ASSAYDATA_COMMENT")
 
-def _downloadIfUpdated(ftp, filedata):
-  data = filedata.split()
-  fname, fsize, = data[8], data[4]
-  ftp.retrbinary("RETR %s" % fname, open("./data/%s" % fname, 'wb').write)
-  return
-  if fname in infocache:
-    if infocache[fname] != fsize:
-      ftp.retrbinary("RETR %s" % fname, open("./data/%s" % fname, 'wb').write)
-  else:
-    infocache[fname] = fsize
-    ftp.retrbinary("RETR %s" % fname, open("./data/%s" % fname, 'wb').write)
+def _makedirs(dirs):
+  for d in dirs:
+    if not os.path.exists(d):
+      os.makedirs(d)
 
-def update(user, passwd, db):
-  return
-  print "plugin: %s" % __name__
-  print "> downloading updated files"
-  if not os.path.exists(cacheFile):
-    open(cacheFile, 'w').close()
-  with open(cacheFile, 'r') as inf:
-    for line in inf:
-      (key, value) = line.split()
-      infocache[key] = value
+def _downloadFiles():
   ftp = FTP(server)
   ftp.login() # anonymous
-  ftp.cwd(pcdir)
-  ftp.retrlines('LIST', lambda line: lines.append(line))
-  for filedata in lines:
-    _downloadIfUpdated(ftp, filedata)
+  ftp.cwd(pubchemDir)
+  files = ftp.nlst()
+  for pubchemFile in files:
+      ftp.retrbinary("RETR %s" % pubchemFile, open("%s/%s" % (localDir, pubchemFile), 'wb').write)
   ftp.quit()
-  with open(cacheFile, 'w') as outf:
-    for key,value in infocache.iteritems():
-      outf.write("%s %s\n" % (key, value))
-  sys.exit()
-#   print "> unzipping files"
-#   with gzip.open("%s/data/%s" % (os.getcwd(), remfile), 'rb') as inf:
-#     with open("%s/data/%s" % (os.getcwd(), locfile), 'w') as outf:
-#       for line in inf:
-#         outf.write(line)
-#   print "> loading %s into table" % remfile
-#   cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
-#   cursor = cnx.cursor()
-#   try:
-#     cursor.execute(
-#         "LOAD DATA LOCAL INFILE '%s/data/%s'"
-#         " REPLACE"
-#         " INTO TABLE %s"
-#         " FIELDS TERMINATED BY '\t'"
-#         " LINES TERMINATED BY  '\n'"
-#         " IGNORE 1 LINES ("
-#         " AID,"
-#         " GI,"
-#         " GeneID,"
-#         " Accession,"
-#         " UniProtKB_ACID);"  % 
-#         (os.getcwd(), locfile, TABLE_NAME))
-#   except mysql.connector.Error as e:
-#     sys.stderr.write("Failed loading data: {}\n".format(e))
-#     return
-#   print "> %s complete" % __name__
+
+def _unzipFiles():
+  directory, _, files = next(os.walk(localDir))
+  for zippedFile in files:
+    archive = zipfile.ZipFile("%s/%s" % (directory, zippedFile), 'r')
+    archive.extractall(localUnzippedDir)
+
+def _concatFiles():
+  with open(localDataFile, 'w') as outf:
+    outf.write(header)
+  directory,folders,_ = next(os.walk(localUnzippedDir))
+  for folder in folders:
+    _,_,files = next(os.walk("%s/%s" % (directory, folder)))
+    for gzfile in files:
+      aid = gzfile[:gzfile.index('.')]
+      with gzip.open("%s/%s/%s" % (directory, folder, gzfile), 'rb') as inf:
+        with open(localDataFile, 'a') as outf:
+          inf.readline() # discard header
+          for line in inf:
+            outf.write("%s,%s" % (aid, line))
+
+def _loadMysqlTable(user, passwd, db):
+  cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
+  cursor = cnx.cursor()
+  try:
+    cursor.execute(
+        "LOAD DATA LOCAL INFILE '%s'"
+        " REPLACE"
+        " INTO TABLE %s"
+        " FIELDS TERMINATED BY ','"
+        " LINES TERMINATED BY  '\n'"
+        " IGNORE 1 LINES ("
+        "   AID,"
+        "   SID,"
+        "   CID,"
+        "   Activity_Outcome,"
+        "   Activity_Score,"
+        "   Activity_URL,"
+        "   Comment"
+        ");" % 
+        (localDataFile, TABLE_NAME))
+  except mysql.connector.Error as e:
+    sys.stderr.write("Failed loading data: {}\n".format(e))
+
+def update(user, passwd, db):
+  print "plugin: %s" % plugin
+  print "> creating space on local machine"
+  _makedirs([localDir, localUnzippedDir, localRawDir])
+  print "> downloading updated files"
+  _downloadFiles()
+  print "> unzipping files"
+  _unzipFiles()
+  print "> compiling gz files into single data file"
+  _concatFiles()
+  print "> loading data into table"
+  _loadMysqlTable(user, passwd, db)
+  print "> %s complete" % __name__
 
 if __name__=="__main__":
   if len(sys.argv) < 4:

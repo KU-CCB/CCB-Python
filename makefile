@@ -1,2 +1,2 @@
 clean:
-	rm -f *.pyc plugins/*.pyc ./data/* 
+	rm -rf *.pyc plugins/*.pyc ./data/* 

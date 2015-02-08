@@ -6,7 +6,7 @@ KU ITTC CCB-Python Database scripts
 .
 ├── config.cfg    # configuration file for database scripts
 ├── create-ccb.py # creates the database
-├── data          # data file folder
+├── data/         # data file folder
 ├── makefile      # junk file management
 ├── plugins/      # database table update scripts (table name = script name)
 │   ├── Aid2GiGeneidAccessionUniprot.py

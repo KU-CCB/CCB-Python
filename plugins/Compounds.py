@@ -10,12 +10,20 @@ import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector.constants import ClientFlag
 
+__all__ = ["update"]
+
+plugin = __name__[__name__.index('.')+1:]
 TABLE_NAME = "Compounds"
 server = "ftp.ncbi.nih.gov"
 pubchemDir  = "pubchem/Compound/Weekly"
 foundUpdated = False
 localDir = "./data/compounds"
 localFiles = ["smiles.csv", "chemattr.csv"]
+
+def _makedirs(dirs):
+  for d in dirs:
+    if not os.path.exists(d):
+      os.makedirs(d)
 
 def _checkForUpdates(folder):
   global pubchemDir
@@ -28,10 +36,9 @@ def _checkForUpdates(folder):
     foundUpdated = True
 
 def update(user, passwd, db):
-  print "plugin: %s" % __name__
+  print "plugin: %s" % plugin
   print "> creating space on local machine"
-  if not os.path.exists(localDir):
-    os.makedirs(localDir)
+  _makedirs([localDir])
   print "> building client binaries"
   make_process = subprocess.Popen("make")
   if make_process.wait() != 0:
@@ -76,7 +83,7 @@ def update(user, passwd, db):
   except mysql.connector.Error as e:
     sys.stderr.write("x Failed loading data: {}\n".format(e))
     return
-  print "> %s complete" % __name__
+  print "> %s complete" % plugin
 
 if __name__=="__main__":
   if len(sys.argv) < 4:
