@@ -6,6 +6,7 @@ import subprocess
 from ftplib import FTP
 import gzip 
 from datetime import datetime, timedelta
+import plugins.store.parsesdf as sdf
 import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector.constants import ClientFlag
@@ -38,9 +39,17 @@ def _getUpdatedFolder(ftp):
 
 def _downloadFolder(ftp, folder):
   ftp.cwd(folder)
-  for pubchemFile in ftp.nlst():
-    localFile = "%s/%s" % (localDir, pubchemFile)
-    ftp.retrbinary("RETR %s" % pubchemFile, open("%s" % localFile, 'wb').write)
+  files = ftp.nlst()
+  total = len(files)
+  i = 0
+  for pubchemFile in files:
+    sys.stdout.write("\r> progress (%s/%s)" % (i, total))
+    sys.stdout.flush()
+    if pubchemFile.find("README") < 0:
+      localFile = "%s/%s" % (localDir, pubchemFile)
+      ftp.retrbinary("RETR %s" % pubchemFile, open("%s" % localFile, 'wb').write)
+    i += 1
+  print ""
 
 def _extractFiles():
   path,_,files = next(os.walk(localDir))
@@ -53,8 +62,7 @@ def _extractFiles():
 def _parseAndConcatenateFiles():
   path,_,files = next(os.walk(localUngzippedDir))
   for f in files:
-    subprocess.Popen(["./plugins/store/xattr", path+'/'+f , "./data/compounds/parsed/%s" % f[:-4]])
-  subprocess.Popen(["cat", "./data/compounds/parsed/* > %s" % fullDataFile])
+    sdf.parseFile("%s/%s" % (path, f), fullDataFile)
 
 def update(user, passwd, db):
   print "plugin: %s" % plugin
@@ -65,7 +73,7 @@ def update(user, passwd, db):
   ftp.login() # anonymous
   folder = _getUpdatedFolder(ftp)
   if not folder is None:
-    print "> downloading files %s " % folder
+    print "> downloading files %s " % folder 
     _downloadFolder(ftp, folder)
   ftp.quit()
   print "> extracting files"
