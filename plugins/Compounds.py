@@ -12,17 +12,13 @@ from mysql.connector import errorcode
 from mysql.connector.constants import ClientFlag
 
 __all__ = ["update"]
-
-plugin = __name__[__name__.index('.')+1:]
-TABLE_NAME = "Compounds"
-server = "ftp.ncbi.nih.gov"
-pubchemDir = "pubchem/Compound/Weekly"
-foundUpdated = False
-localDir = "./data/compounds"
-localUngzippedDir = "./data/compounds/ungzipped"
-localParsedDir = "./data/compounds/parsed"
-localFiles = ["smiles.csv", "chemattr.csv"]
-fullDataFile = "./data/compounds/parsed/fullData.csv"
+plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
+server            = "ftp.ncbi.nih.gov"
+pubchemDir        = "pubchem/Compound/Weekly"
+localArchiveDir   = "data/compounds"
+localUngzippedDir = "data/compounds/ungzipped"
+localParsedDir    = "data/compounds/parsed"
+fullDataFile      = "data/compounds/parsed/fullData.csv"
 
 def _makedirs(dirs):
   for d in dirs:
@@ -40,66 +36,89 @@ def _getUpdatedFolder(ftp):
 def _downloadFolder(ftp, folder):
   ftp.cwd(folder)
   files = ftp.nlst()
-  total = len(files)
-  i = 0
-  for pubchemFile in files:
-    sys.stdout.write("\r> progress (%s/%s)" % (i, total))
+  for i in range(0, len(files)):
+    sys.stdout.write("\r> downloading files (%s/%s)" % (i, len(files)))
     sys.stdout.flush()
-    if pubchemFile.find("README") < 0:
-      localFile = "%s/%s" % (localDir, pubchemFile)
-      ftp.retrbinary("RETR %s" % pubchemFile, open("%s" % localFile, 'wb').write)
-    i += 1
+    # ignore the readme file
+    if files[i].find("README") < 0:
+      localFilePath = "%s/%s" % (localArchiveDir, files[i])
+      ftp.retrbinary("RETR %s" % files[i], open(localFilePath, 'wb').write)
+    if i > 200:
+      break
   print ""
 
-def _extractFiles():
-  path,_,files = next(os.walk(localDir))
+def _extractArchives():
+  path,_,files = next(os.walk(localArchiveDir))
   for f in files:
-    with gzip.open("%s/%s" % (localDir, f), 'rb') as inf:
+    with gzip.open("%s/%s" % (localArchiveDir, f), 'rb') as inf:
       with open("%s/%s" % (localUngzippedDir, f[:-3]), 'w') as outf:
         for line in inf:
           outf.write(line)
 
-def _parseAndConcatenateFiles():
-  path,_,files = next(os.walk(localUngzippedDir))
+def _processFiles():
+  path,_,files = next(PUBCHEM_OPENEYE_CAN_SMILES.walk(localUngzippedDir))
   for f in files:
     sdf.parseFile("%s/%s" % (path, f), fullDataFile)
+
+def _loadMysqlTable(user, passwd, db):
+  cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
+  cursor = cnx.cursor()
+  try:
+    query = (
+      "LOAD DATA LOCAL INFILE '%s/%s'"
+      " REPLACE"
+      " INTO TABLE `Compounds`"
+      " FIELDS TERMINATED BY '^'"
+      " LINES TERMINATED BY '\n'"
+      " (PUBCHEM_COMPOUND_CID,"
+      " PUBCHEM_COMPOUND_CANONICALIZED,"
+      " PUBCHEM_CACTVS_COMPLEXITY,"
+      " PUBCHEM_CACTVS_HBOND_ACCEPTOR,"
+      " PUBCHEM_CACTVS_HBOND_DONOR,"
+      " PUBCHEM_CACTVS_ROTATABLE_BOND,"
+      " PUBCHEM_CACTVS_SUBSKEYS,"
+      " PUBCHEM_IUPAC_INCHI,"
+      " PUBCHEM_IUPAC_INCHIKEY,"
+      " PUBCHEM_EXACT_MASS,"
+      " PUBCHEM_MOLECULAR_FORMULA,"
+      " PUBCHEM_MOLECULAR_WEIGHT,"
+      " PUBCHEM_OPENEYE_CAN_SMILES,"
+      " PUBCHEM_OPENEYE_ISO_SMILES,"
+      " PUBCHEM_CACTVS_TPSA,"
+      " PUBCHEM_MONOISOTOPIC_WEIGHT,"
+      " PUBCHEM_TOTAL_CHARGE,"
+      " PUBCHEM_HEAVY_ATOM_COUNT,"
+      " PUBCHEM_ATOM_DEF_STEREO_COUNT,"
+      " PUBCHEM_ATOM_UDEF_STEREO_COUNT,"  
+      " PUBCHEM_BOND_DEF_STEREO_COUNT,"
+      " PUBCHEM_BOND_UDEF_STEREO_COUNT,"
+      " PUBCHEM_ISOTOPIC_ATOM_COUNT,"
+      " PUBCHEM_COMPONENT_COUNT,"
+      " PUBCHEM_CACTVS_TAUTO_COUNT);" %
+      (os.getcwd(), fullDataFile))
+    cursor.execute(query)
+    cnx.commit()
+  except mysql.connector.Error as e:
+    sys.stderr.write("x failed loading data: {}\n".format(e))
 
 def update(user, passwd, db):
   print "plugin: %s" % plugin
   print "> creating space on local machine"
-  _makedirs([localDir, localUngzippedDir, localParsedDir])
+  _makedirs([localArchiveDir, localUngzippedDir, localParsedDir])
   print "> checking for updated files"
   ftp = FTP(server)
   ftp.login() # anonymous
   folder = _getUpdatedFolder(ftp)
   if not folder is None:
-    print "> downloading files %s " % folder 
+    print "> found files updated on %s " % folder[:folder.index('/')] 
     _downloadFolder(ftp, folder)
   ftp.quit()
   print "> extracting files"
-  _extractFiles()
+  _extractArchives()
   print "> processing files"
-  _parseAndConcatenateFiles()
-  # print "> loading %s into table" % localFile
-  # cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
-  # cursor = cnx.cursor()
-  # try:
-  #   cursor.execute(
-  #       "LOAD DATA LOCAL INFILE '%s/data/%s'"
-  #       " REPLACE"
-  #       " INTO TABLE %s"
-  #       " FIELDS TERMINATED BY '\t'"
-  #       " LINES TERMINATED BY  '\n'"
-  #       " IGNORE 1 LINES ("
-  #       " AID,"
-  #       " GI,"
-  #       " GeneID,"
-  #       " Accession,"
-  #       " UniProtKB_ACID);"  % 
-  #       (os.getcwd(), localFile, TABLE_NAME))
-  # except mysql.connector.Error as e:
-  #   sys.stderr.write("x Failed loading data: {}\n".format(e))
-  #   return
+  _processFiles()
+  print "> loading %s/%s into table" % (os.getcwd(), fullDataFile)
+  _loadMysqlTable(user, passwd, db) 
   print "> %s complete" % plugin
 
 if __name__=="__main__":
