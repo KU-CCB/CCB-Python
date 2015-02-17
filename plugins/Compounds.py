@@ -2,6 +2,7 @@
 
 import sys
 import os
+import ConfigParser
 import subprocess
 from ftplib import FTP
 import gzip 
@@ -13,12 +14,14 @@ from mysql.connector.constants import ClientFlag
 
 __all__ = ["update"]
 plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
+cfg = ConfigParser.ConfigParser()
+cfg.read("config.cfg")
 server            = "ftp.ncbi.nih.gov"
 pubchemDir        = "pubchem/Compound/Weekly"
-localArchiveDir   = "data/compounds"
-localUngzippedDir = "data/compounds/ungzipped"
-localParsedDir    = "data/compounds/parsed"
-fullDataFile      = "data/compounds/parsed/fullData.csv"
+localArchiveDir   = "%s/compounds" % cfg.get('default','tmp')
+localUngzippedDir = "%s/compounds/ungzipped" % cfg.get('default','tmp')
+localParsedDir    = "%s/compounds/parsed" % cfg.get('default','tmp')
+fullDataFile      = "%s/compounds/parsed/fullData.csv" % cfg.get('default','tmp')
 
 def _makedirs(dirs):
   for d in dirs:
@@ -43,6 +46,8 @@ def _downloadFolder(ftp, folder):
     if files[i].find("README") < 0:
       localFilePath = "%s/%s" % (localArchiveDir, files[i])
       ftp.retrbinary("RETR %s" % files[i], open(localFilePath, 'wb').write)
+    if i < 20:
+      break
   print ""
 
 def _extractArchives():

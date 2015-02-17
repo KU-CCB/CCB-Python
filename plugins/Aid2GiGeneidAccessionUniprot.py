@@ -2,6 +2,7 @@
 
 import sys
 import os
+import ConfigParser
 from ftplib import FTP
 import gzip
 import mysql.connector
@@ -10,10 +11,12 @@ from mysql.connector.constants import ClientFlag
 
 __all__ = ["update"]
 plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
+cfg = ConfigParser.ConfigParser()
+cfg.read("config.cfg")
 server      = "ftp.ncbi.nih.gov"
 pubchemDir  = "pubchem/Bioassay/Extras"
 pubchemFile = "Aid2GiGeneidAccessionUniprot.gz"
-localArchive = "data/%s" % pubchemFile
+localArchive = "%s/%s" % (cfg.get('default','tmp'), pubchemFile)
 localFile   = localArchive[:-3]
 
 def _downloadFiles():
