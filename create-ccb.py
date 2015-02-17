@@ -6,7 +6,13 @@ import mysql.connector
 from mysql.connector import errorcode
 
 if len(sys.argv) < 3:
-  print "Usage: %s <username> <password>" % __file__
+  print "CCBDB.create-ccb  The KU CCB Database creation script"
+  print "  For more information, see https://github.com/KU-CCB/CCBDB.git"
+  print ""
+  print "  For issues see https://github.com/KU-CCB/CCBDB/issues or"
+  print "  contact Kendal Harland <kendaljharland@gmail.com>"
+  print ""
+  print "  Usage: %s <username> <password>" % __file__
   sys.exit()
 
 cfg = ConfigParser.ConfigParser()

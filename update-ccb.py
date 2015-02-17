@@ -7,7 +7,7 @@ import plugins.Bioassays
 import plugins.Compounds
 
 if len(sys.argv) < 3:
-  print "CCBDB  The KU CCB Database Update script"
+  print "CCBDB.update-ccb  The KU CCB Database update script"
   print "  For more information, see https://github.com/KU-CCB/CCBDB.git"
   print ""
   print "  For issues see https://github.com/KU-CCB/CCBDB/issues or"
