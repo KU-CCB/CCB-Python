@@ -13,7 +13,6 @@ from mysql.connector import errorcode
 from mysql.connector.constants import ClientFlag
 
 __all__ = ["update"]
-
 plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
 server            = "ftp.ncbi.nih.gov"
 pubchemDir        = "pubchem/Bioassay/Concise/CSV/Data"

@@ -43,8 +43,6 @@ def _downloadFolder(ftp, folder):
     if files[i].find("README") < 0:
       localFilePath = "%s/%s" % (localArchiveDir, files[i])
       ftp.retrbinary("RETR %s" % files[i], open(localFilePath, 'wb').write)
-    if i > 200:
-      break
   print ""
 
 def _extractArchives():
@@ -56,7 +54,7 @@ def _extractArchives():
           outf.write(line)
 
 def _processFiles():
-  path,_,files = next(PUBCHEM_OPENEYE_CAN_SMILES.walk(localUngzippedDir))
+  path,_,files = next(os.walk(localUngzippedDir))
   for f in files:
     sdf.parseFile("%s/%s" % (path, f), fullDataFile)
 
@@ -69,8 +67,8 @@ def _loadMysqlTable(user, passwd, db):
       " REPLACE"
       " INTO TABLE `Compounds`"
       " FIELDS TERMINATED BY '^'"
-      " LINES TERMINATED BY '\n'"
-      " (PUBCHEM_COMPOUND_CID,"
+      " LINES TERMINATED BY '\n' ("
+      " PUBCHEM_COMPOUND_CID,"
       " PUBCHEM_COMPOUND_CANONICALIZED,"
       " PUBCHEM_CACTVS_COMPLEXITY,"
       " PUBCHEM_CACTVS_HBOND_ACCEPTOR,"
