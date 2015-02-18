@@ -9,8 +9,6 @@
 import pybel
 import sys
 
-print pybel.islocal()
-
 def parseFile(infile, outfile):
   fields = [ 
       'PUBCHEM_COMPOUND_CID',
