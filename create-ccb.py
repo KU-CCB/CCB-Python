@@ -1,6 +1,14 @@
 #!/usr/bin/python
 
 import sys
+"""
+mysq.connector is only installed on the acf cluster for python2.6 but we need
+to use python2.7+ because the 'with' directive is not backwards compatible
+with v2.6.*
+"""
+import socket
+if socket.gethostname()[-6:] == "ku.edu":
+	sys.path.append('/usr/lib/python2.6/site-packages/')
 import ConfigParser
 import mysql.connector
 from mysql.connector import errorcode
@@ -99,8 +107,8 @@ cursor = cnx.cursor()
 try:
   cursor.execute(
     "CREATE DATABASE %s DEFAULT CHARACTER SET '%s'" % 
-      (cfg.get('default','db'), cfg.get('default','charset')))
-  print "> Database %s successfully created" % cfg.get('default','db')
+      (cfg.get('default','database'), cfg.get('default','charset')))
+  print "> Database %s successfully created" % cfg.get('default','database')
 except mysql.connector.Error as e:
   sys.stderr.write("x Failed creating database: {}\n".format(e))
   sys.exit()
