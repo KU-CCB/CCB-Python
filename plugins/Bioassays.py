@@ -22,7 +22,6 @@ pubchemDir        = "pubchem/Bioassay/Concise/CSV/Data"
 localDir          = "%s/assays" % cfg.get('default','tmp')
 localUnzippedDir  = "%s/assays/unzipped" % cfg.get('default','tmp')
 localUngzippedDir = "%s/assays/ungzipped" % cfg.get('default','tmp')
-localDataFile     = "%s/assays/fullData.csv" % cfg.get('default','tmp')
 # For human readability
 header = ("PUBCHEM_AID,PUBCHEM_SID,PUBCHEM_CID,PUBCHEM_ACTIVITY_OUTCOME,PUBCHEM_ACTIVITY_SCORE,PUBCHEM_ACTIVITY_URL,PUBCHEM_ASSAYDATA_COMMENT")
 
@@ -40,7 +39,7 @@ def _downloadFiles():
     sys.stdout.write("\r> downloading files (%s/%s)" % (i, len(files)))
     sys.stdout.flush()
     ftp.retrbinary("RETR %s" % files[i], open("%s/%s" % (localDir, files[i]), 'wb').write)
-    if i > 2:
+    if i > 1:
       break
   ftp.quit()
 
@@ -67,7 +66,7 @@ def _loadMysqlTable(user, passwd, db):
   cursor = cnx.cursor()
   _,_,files = next(os.walk(localUngzippedDir))
   for i in range(0, len(files)):
-    sys.stdout.write("\r> downloading files (%s/%s)" % (i, len(files)))
+    sys.stdout.write("\r> loading files into table (%s/%s)" % (i, len(files)))
     sys.stdout.flush()
     try:
       query = (
@@ -95,8 +94,8 @@ def update(user, passwd, db):
   print "plugin: %s" % plugin
   print "> creating space on local machine"
   _makedirs([localDir, localUnzippedDir, localUngzippedDir])
-  print "> downloading updated files"
-  _downloadFiles()
+  # print "> downloading updated files"
+  # _downloadFiles()
   print "> unzipping files"
   _unzipFiles()
   print "> ungzipping files"
