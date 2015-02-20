@@ -17,3 +17,17 @@ KU ITTC CCB-Python Database scripts
 ├── setup.py      # creates necessary files & folders
 └── update-ccb.py # top-level database update script
 ```
+
+#### Usage
+```sh
+python setup.py
+python create-ccb.py username password
+python update-ccb.py username password
+```
+
+**You can also run each plugin file directly to update a single database table**
+
+```sh
+cd plugins/
+python Bioassays.py username password 'ccb'
+```
