@@ -4,18 +4,19 @@ KU ITTC CCB-Python Database scripts
 #### Structure
 ```sh
 .
-├── config.cfg    # configuration file for database scripts
-├── create-ccb.py # creates the database
-├── data/         # data file folder
-├── makefile      # junk file management
-├── plugins/      # database table update scripts (table name = script name)
+├── config.cfg     # configuration file for database scripts
+├── create-ccb.py  # creates the database
+├── plugin.stub.py # example file for creating a plugin
+├── data/          # data file folder
+├── makefile       # junk file management
+├── plugins/       # database table update scripts (table name = script name)
 │   ├── Aid2GiGeneidAccessionUniprot.py
 │   ├── Bioassays.py
 │   ├── Compounds.py
-│   └── store/    # space for persistent files used by plugins
+│   └── store/     # space for persistent files used by plugins
 ├── README.md
-├── setup.py      # creates necessary files & folders
-└── update-ccb.py # top-level database update script
+├── setup.py       # creates necessary files & folders
+└── update-ccb.py  # top-level database update script
 ```
 
 #### Usage
