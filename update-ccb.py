@@ -11,8 +11,8 @@ if socket.gethostname()[-6:] == "ku.edu":
 	sys.path.append('/usr/lib/python2.6/site-packages/')
 import ConfigParser
 import plugins.Aid2GiGeneidAccessionUniprot
-#import plugins.Bioassays
-#import plugins.Compounds
+import plugins.Bioassays
+import plugins.Compounds
 
 if len(sys.argv) < 3:
   print "CCBDB.update-ccb  The KU CCB Database update script"
@@ -28,5 +28,5 @@ cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
 
 plugins.Aid2GiGeneidAccessionUniprot.update(user, passwd, cfg.get('default','database'))
-#plugins.Bioassays.update(user, passwd, cfg.get('default', 'database'))
-#plugins.Compounds.update(user, passwd, cfg.get('default', 'database'))
+plugins.Bioassays.update(user, passwd, cfg.get('default', 'database'))
+plugins.Compounds.update(user, passwd, cfg.get('default', 'database'))

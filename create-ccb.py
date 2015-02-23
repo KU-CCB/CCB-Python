@@ -118,7 +118,7 @@ except mysql.connector.Error as e:
 try:
   cursor.execute("use %s" % cfg.get('default','database'))
 except mysql.connector.Error as e:
-  sys.stderr.write("x Failed to access database: {}\n".format(e))
+  sys.stderr.write("x Failed to access database: %s\n" % e)
   sys.exit()
 
 # Create the tables
@@ -127,4 +127,4 @@ for table, query in TABLES.iteritems():
     cursor.execute(query)
     print "> Table %s successfully created" % table
   except mysql.connector.Error as e:
-    sys.stderr.write("x Failed creating table: {}\n".format(e))
+    sys.stderr.write("x Failed creating table: %s\n" % e)
