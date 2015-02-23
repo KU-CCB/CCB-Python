@@ -65,7 +65,7 @@ def _ungzipFiles():
 def _loadMysqlTable(user, passwd, db):
   cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
-  _,_,files = next(os.walk(localUngzippedDir))
+  path,_,files = next(os.walk(localUngzippedDir))
   for i in range(0, len(files)):
     sys.stdout.write("\r> loading files into table (%s/%s)" % (i, len(files)))
     sys.stdout.flush()
@@ -85,7 +85,7 @@ def _loadMysqlTable(user, passwd, db):
           "   Activity_URL,"
           "   Comment"
           ");" % 
-          (localUngzippedDir, files[i]))
+          (path, files[i]))
       cursor.execute(query)
       cnx.commit()
     except mysql.connector.Error as e:

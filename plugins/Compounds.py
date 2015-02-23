@@ -46,7 +46,7 @@ def _downloadFolder(ftp, folder):
     if files[i].find("README") < 0:
       localFilePath = "%s/%s" % (localArchiveDir, files[i])
       ftp.retrbinary("RETR %s" % files[i], open(localFilePath, 'wb').write)
-    if i < 20:
+    if i > 5:
       break
   print ""
 
@@ -61,48 +61,51 @@ def _extractArchives():
 def _processFiles():
   path,_,files = next(os.walk(localUngzippedDir))
   for f in files:
-    sdf.parseFile("%s/%s" % (path, f), fullDataFile)
+    sdf.parseFile("%s/%s" % (path, f), 
+                  "%s/%s" % (localParsedDir, f))
 
 def _loadMysqlTable(user, passwd, db):
-  cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
-  cursor = cnx.cursor()
-  try:
-    query = (
-      "LOAD DATA LOCAL INFILE '%s/%s'"
-      " REPLACE"
-      " INTO TABLE `Compounds`"
-      " FIELDS TERMINATED BY '^'"
-      " LINES TERMINATED BY '\n' ("
-      " PUBCHEM_COMPOUND_CID,"
-      " PUBCHEM_COMPOUND_CANONICALIZED,"
-      " PUBCHEM_CACTVS_COMPLEXITY,"
-      " PUBCHEM_CACTVS_HBOND_ACCEPTOR,"
-      " PUBCHEM_CACTVS_HBOND_DONOR,"
-      " PUBCHEM_CACTVS_ROTATABLE_BOND,"
-      " PUBCHEM_CACTVS_SUBSKEYS,"
-      " PUBCHEM_IUPAC_INCHI,"
-      " PUBCHEM_IUPAC_INCHIKEY,"
-      " PUBCHEM_EXACT_MASS,"
-      " PUBCHEM_MOLECULAR_FORMULA,"
-      " PUBCHEM_MOLECULAR_WEIGHT,"
-      " PUBCHEM_OPENEYE_CAN_SMILES,"
-      " PUBCHEM_OPENEYE_ISO_SMILES,"
-      " PUBCHEM_CACTVS_TPSA,"
-      " PUBCHEM_MONOISOTOPIC_WEIGHT,"
-      " PUBCHEM_TOTAL_CHARGE,"
-      " PUBCHEM_HEAVY_ATOM_COUNT,"
-      " PUBCHEM_ATOM_DEF_STEREO_COUNT,"
-      " PUBCHEM_ATOM_UDEF_STEREO_COUNT,"  
-      " PUBCHEM_BOND_DEF_STEREO_COUNT,"
-      " PUBCHEM_BOND_UDEF_STEREO_COUNT,"
-      " PUBCHEM_ISOTOPIC_ATOM_COUNT,"
-      " PUBCHEM_COMPONENT_COUNT,"
-      " PUBCHEM_CACTVS_TAUTO_COUNT);" %
-      (os.getcwd(), fullDataFile))
-    cursor.execute(query)
-    cnx.commit()
-  except mysql.connector.Error as e:
-    sys.stderr.write("x failed loading data: {}\n".format(e))
+  path,_,files = next(os.walk(localParsedDir))
+  for f in files:
+    cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
+    cursor = cnx.cursor()
+    try:
+      query = (
+        "LOAD DATA LOCAL INFILE '%s/%s'"
+        " REPLACE"
+        " INTO TABLE `Compounds`"
+        " FIELDS TERMINATED BY '^'"
+        " LINES TERMINATED BY '\n' ("
+        " PUBCHEM_COMPOUND_CID,"
+        " PUBCHEM_COMPOUND_CANONICALIZED,"
+        " PUBCHEM_CACTVS_COMPLEXITY,"
+        " PUBCHEM_CACTVS_HBOND_ACCEPTOR,"
+        " PUBCHEM_CACTVS_HBOND_DONOR,"
+        " PUBCHEM_CACTVS_ROTATABLE_BOND,"
+        " PUBCHEM_CACTVS_SUBSKEYS,"
+        " PUBCHEM_IUPAC_INCHI,"
+        " PUBCHEM_IUPAC_INCHIKEY,"
+        " PUBCHEM_EXACT_MASS,"
+        " PUBCHEM_MOLECULAR_FORMULA,"
+        " PUBCHEM_MOLECULAR_WEIGHT,"
+        " PUBCHEM_OPENEYE_CAN_SMILES,"
+        " PUBCHEM_OPENEYE_ISO_SMILES,"
+        " PUBCHEM_CACTVS_TPSA,"
+        " PUBCHEM_MONOISOTOPIC_WEIGHT,"
+        " PUBCHEM_TOTAL_CHARGE,"
+        " PUBCHEM_HEAVY_ATOM_COUNT,"
+        " PUBCHEM_ATOM_DEF_STEREO_COUNT,"
+        " PUBCHEM_ATOM_UDEF_STEREO_COUNT,"  
+        " PUBCHEM_BOND_DEF_STEREO_COUNT,"
+        " PUBCHEM_BOND_UDEF_STEREO_COUNT,"
+        " PUBCHEM_ISOTOPIC_ATOM_COUNT,"
+        " PUBCHEM_COMPONENT_COUNT,"
+        " PUBCHEM_CACTVS_TAUTO_COUNT);" %
+        (path, f))
+      cursor.execute(query)
+      cnx.commit()
+    except mysql.connector.Error as e:
+      sys.stderr.write("x failed loading data: {}\n".format(e))
 
 def update(user, passwd, db):
   print "plugin: %s" % plugin
@@ -120,7 +123,7 @@ def update(user, passwd, db):
   _extractArchives()
   print "> processing files"
   _processFiles()
-  print "> loading %s/%s into table" % (os.getcwd(), fullDataFile)
+  print "> loading files into table"
   _loadMysqlTable(user, passwd, db) 
   print "> %s complete" % plugin
 
