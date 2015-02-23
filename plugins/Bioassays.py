@@ -39,8 +39,9 @@ def _downloadFiles():
     sys.stdout.write("\r> downloading files (%s/%s)" % (i, len(files)))
     sys.stdout.flush()
     ftp.retrbinary("RETR %s" % files[i], open("%s/%s" % (localDir, files[i]), 'wb').write)
-    if i > 1:
+    if i > 5:
       break
+  sys.stdout.write('\n')
   ftp.quit()
 
 def _unzipFiles():
@@ -70,7 +71,7 @@ def _loadMysqlTable(user, passwd, db):
     sys.stdout.flush()
     try:
       query = (
-          "LOAD DATA LOCAL INFILE '%s/%s/%s'"
+          "LOAD DATA LOCAL INFILE '%s/%s'"
           " REPLACE"
           " INTO TABLE `Bioassays`"
           " FIELDS TERMINATED BY ','"
@@ -84,7 +85,7 @@ def _loadMysqlTable(user, passwd, db):
           "   Activity_URL,"
           "   Comment"
           ");" % 
-          (os.getcwd(), localUngzippedDir, files[i]))
+          (localUngzippedDir, files[i]))
       cursor.execute(query)
       cnx.commit()
     except mysql.connector.Error as e:
@@ -94,8 +95,8 @@ def update(user, passwd, db):
   print "plugin: %s" % plugin
   print "> creating space on local machine"
   _makedirs([localDir, localUnzippedDir, localUngzippedDir])
-  # print "> downloading updated files"
-  # _downloadFiles()
+  print "> downloading updated files"
+  _downloadFiles()
   print "> unzipping files"
   _unzipFiles()
   print "> ungzipping files"
