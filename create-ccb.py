@@ -115,7 +115,7 @@ except mysql.connector.Error as e:
 
 # Access the databse
 try:
-  cursor.execute("use %s" % cfg.get('default','db'))
+  cursor.execute("use %s" % cfg.get('default','database'))
 except mysql.connector.Error as e:
   sys.stderr.write("x Failed to access database: {}\n".format(e))
   sys.exit()
