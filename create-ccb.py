@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys
+
 """
 mysq.connector is only installed on the acf cluster for python2.6 but we need
 to use python2.7+ because the 'with' directive is not backwards compatible
