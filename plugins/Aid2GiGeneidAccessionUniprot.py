@@ -37,7 +37,7 @@ def _loadMysqlTable(user, passwd, db):
   cursor = cnx.cursor()
   try:
     query = (
-      "LOAD DATA LOCAL INFILE '%s/%s'"
+      "LOAD DATA LOCAL INFILE '%s'"
       " REPLACE"
       " INTO TABLE `Aid2GiGeneidAccessionUniprot`"
       " FIELDS TERMINATED BY '\t'"
@@ -48,11 +48,11 @@ def _loadMysqlTable(user, passwd, db):
       " GeneID,"
       " Accession,"
       " UniProtKB_ACID);"  % 
-      (os.getcwd(), localFile))
+      (localFile))
     cursor.execute(query)
     cnx.commit()
   except mysql.connector.Error as e:
-    sys.stderr.write("x failed loading data: {}\n".format(e))
+    sys.stderr.write("x failed loading data: %e\n" % e)
 
 def update(user, passwd, db):
   print "plugin: %s" % plugin
