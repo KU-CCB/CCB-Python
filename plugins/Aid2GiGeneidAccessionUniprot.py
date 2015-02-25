@@ -43,16 +43,16 @@ def _loadMysqlTable(user, passwd, db):
       " FIELDS TERMINATED BY '\t'"
       " LINES TERMINATED BY '\n'"
       " IGNORE 1 LINES ("
-      " AID,"
-      " GI,"
-      " GeneID,"
-      " Accession,"
-      " UniProtKB_ACID);"  % 
+      " assay_id,"
+      " gi,"
+      " gene_id,"
+      " ncbi_accession,"
+      " uniprot_kb);"  % 
       (localFile))
     cursor.execute(query)
     cnx.commit()
   except mysql.connector.Error as e:
-    sys.stderr.write("x failed loading data: %e\n" % e)
+    sys.stderr.write("x failed loading data: %s\n" % e)
 
 def update(user, passwd, db):
   print "plugin: %s" % plugin
