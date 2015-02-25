@@ -43,6 +43,7 @@ TYPES = {
   'activity_score':    "SMALLINT", # Needs check, encountered values in range (-128, 128) could be tinyint
   'activity_URL':      "TEXT",
   'assay_description': "MEDIUMTEXT", # Needs check, might have to be larger depending on description format (JSON, ASNX, etc.)
+  'assay_comment':     "MEDIUMTEXT", # Needs check
 }
 
 TABLES = {
@@ -60,15 +61,16 @@ TABLES = {
   'Bioassays': (
     "CREATE TABLE `Bioassays` ("
     "`assay_id`          " + TYPES["assay_id"] + ","
+    "`substance_id`      " + TYPES["substance_id"] + ","
     "`activity_outcome`  " + TYPES["activity_outcome"] + ","
     "`activity_score`    " + TYPES["activity_score"] + ","
     "`activity_URL`      " + TYPES["activity_URL"] + ","
-    "`assay_description` " + TYPES["assay_description"] + ","
+    "`assay_comment`     " + TYPES["assay_comment"] + ","
     "PRIMARY KEY (`assay_id`)"
-    ") ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED"
+    ") ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED"
   ),
 
-  'substance_id_compound_id': (
+  'Substance_id_compound_id': (
     "CREATE TABLE `substance_id_compound_id` ("
     "`substance_id` " + TYPES["substance_id"] + ","
     "`compound_id`  " + TYPES["compound_id"] + ","
@@ -76,6 +78,12 @@ TABLES = {
     "KEY compound_id_idx (`compound_id`)"
     ") ENGINE=MyISAM DEFAULT CHARSET=latin1;"
   )
+
+  'Assay_id_assay_description'
+    "`assay_id`          " + TYPES["assay_id"] + ","
+    "`assay_description` " + TYPES["assay_description"] + ","
+    "PRIMARY KEY (`assay_id`)"
+    ") ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED"
 }
 
 cnx = mysql.connector.connect(user=sys.argv[1], password=sys.argv[2])
@@ -91,7 +99,8 @@ except mysql.connector.Error as e:
   sys.exit()
 
 try: # Set database options
-  cursor.execute("set sql_mode='STRICT_ALL_TABLES';") # Make mysql respect our domains
+  # Make mysql respect our types
+  cursor.execute("set sql_mode='STRICT_ALL_TABLES';") 
   print "> Database %s configuration set successfully"
 except mysql.connector.Error as e:
   sys.stderr.write("x Failed configuring database: %s\n" % e)
