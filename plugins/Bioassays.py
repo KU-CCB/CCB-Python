@@ -54,38 +54,45 @@ def _unzipFiles():
 
 def _splitDataFiles():
   directory,folders,_ = next(os.walk(localUnzippedDir))
-  for folder in folders:
-    _,_,gzfiles = next(os.walk("%s/%s" % (directory, folder)))
+  assayData = []
+  sid2cidData = []
+  # This algorithm uses a lot of memory. It loads all data for all files into
+  # memory and writes to disk one time. This should be fast since the ITTC
+  # cluster has enough RAM to hold all of this data. However if you're running
+  # this on your own machine, you might want to have 8+ GB of memory.
+  for j in range(0, len(folders)):
+    _,_,gzfiles = next(os.walk("%s/%s" % (directory, folders[j])))
     for i in range(0, len(gzfiles)):
-      sys.stdout.write("\r> separating gzipped data files (%s/%s)" % (i, len(gzfiles)))
+      sys.stdout.write("\r> processing folder (%s/%s) files (%s/%s)" % 
+        (j, len(folders), i, len(gzfiles)))
       sys.stdout.flush()
       aid = gzfiles[i][:gzfiles[i].index('.')]
-      data = None
-      with gzip.open("%s/%s/%s" % (directory, folder, gzfiles[i]), 'rb') as inf:
+      with gzip.open("%s/%s/%s" % (directory, folders[j], gzfiles[i]), 'rb') as inf:
         # We could iterate over each line in the file and use less memory, but
         # this would also require opening and closing each output file in this 
         # loop which would be rather slow. Each file is only a couple hundred MB
         # so we can afford to simply load all of the data for a file one time
         # and open and close each output file one time per input file.
-        data = inf.readlines()[1:]
-      with open("%s/%s.csv" % (localProcessedDir, aid), "w") as outf:
-        for line in data:
+        inf.readline()
+        for line in inf:
           line = line.rstrip().split(',')
-          #                 0    2        3      4    6
+          # - Index:        0    2        3      4    5
           # - Keep the aid, sid, outcome, score, url, comment
-          # - discard everything after column 7 (active concentration and data
-          #   specified at ftp://ftp.ncbi.nih.gov/pubchem/Bioassay/Concise/CSV/README)
-          keep = [aid]
-          keep.append(line[0])
-          keep.extend(line[2:7])
-          outf.write("%s\n" % ",".join(keep))
-      with open("%s" % sid2cidMapFile, "a") as outf:
-        for line in data:
-          line = line.rstrip().split(',')
+          # - Discard everything after column 7 (active concentration and data
+          #   specified at ftp://ftp.ncbi.nih.gov/pubchem/Bioassay/Concise/CSV/README)```
+          assayData.append([aid, line[0], line[2], line[3], line[4], line[5]])
+          # Now store the sid/cid map data
           #            0       1
           # - Keep the sid and cid
-          keep = line[0:2]
-          outf.write("%s\n" % ",".join(keep))
+          sid2cidData.append([aid, line[0], line[1]])
+  with open(localProcessedDir+"/alldata.csv", 'a') as outf:
+    for line in assayData:                  
+      outf.write(",".join(line)+"\n")
+  with open(sid2cidMapFile, 'a') as outf: 
+    for line in sid2cidData:
+      outf.write(",".join(line)+"\n")
+        assayData = []
+        sid2cidData = []
 
 def _loadMysqlTable(user, passwd, db):
   cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
