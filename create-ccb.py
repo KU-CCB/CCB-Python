@@ -77,13 +77,15 @@ TABLES = {
     "PRIMARY KEY (`substance_id`),"
     "KEY compound_id_idx (`compound_id`)"
     ") ENGINE=MyISAM DEFAULT CHARSET=latin1;"
-  )
+  ),
 
-  'Assay_id_assay_description'
+  'Assay_id_assay_description': (
+    "CREATE TABLE `Assay_id_assay_description` ("
     "`assay_id`          " + TYPES["assay_id"] + ","
     "`assay_description` " + TYPES["assay_description"] + ","
     "PRIMARY KEY (`assay_id`)"
     ") ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED"
+  )
 }
 
 cnx = mysql.connector.connect(user=sys.argv[1], password=sys.argv[2])
