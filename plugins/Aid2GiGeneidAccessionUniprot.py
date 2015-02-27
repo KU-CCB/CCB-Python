@@ -19,27 +19,27 @@ pubchemFile = "Aid2GiGeneidAccessionUniprot.gz"
 localArchive = "%s/%s" % (cfg.get('default','tmp'), pubchemFile)
 localFile   = localArchive[:-3]
 
-def _downloadFiles():
+def downloadFiles():
   ftp = FTP(server)
   ftp.login() # anonymous
   ftp.cwd(pubchemDir)
   ftp.retrbinary("RETR %s" % pubchemFile, open(localArchive, 'wb').write)
   ftp.quit()
 
-def _extractFiles():
+def extractFiles():
   with gzip.open(localArchive, 'rb') as inf:
     with open(localFile, 'w') as outf:
       for line in inf:
         outf.write(line)
 
-def _loadMysqlTable(user, passwd, db):
+def loadMysqlTable(user, passwd, db):
   cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
   try:
     query = (
       "LOAD DATA LOCAL INFILE '%s'"
       " REPLACE"
-      " INTO TABLE `Aid2GiGeneidAccessionUniprot`"
+      " INTO TABLE Aid2GiGeneidAccessionUniprot"
       " FIELDS TERMINATED BY '\t'"
       " LINES TERMINATED BY '\n'"
       " IGNORE 1 LINES ("
@@ -57,11 +57,11 @@ def _loadMysqlTable(user, passwd, db):
 def update(user, passwd, db):
   print "plugin: %s" % plugin
   print "> downloading files"
-  _downloadFiles()
+  downloadFiles()
   print "> extracting files"
-  _extractFiles()
+  extractFiles()
   print "> loading %s into table" % localFile
-  _loadMysqlTable(user, passwd, db)
+  loadMysqlTable(user, passwd, db)
   print "> %s complete" % plugin
 
 if __name__=="__main__":
