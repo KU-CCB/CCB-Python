@@ -26,10 +26,6 @@ localProcessedDir = "%s/processed"   % assayDataDir
 assayDataFile     = "%s/assays.csv"  % localProcessedDir
 sid2cidMapFile    = "%s/sid2cid.csv" % substanceDataDir
 
-def showProgress(msg, *args):
-  sys.stdout.write("\r> "+ (msg % args))
-  sys.stdout.flush()
-
 def _makedirs(dirs):
   for d in dirs:
     if not os.path.exists(d):
@@ -41,7 +37,8 @@ def downloadFiles():
   ftp.cwd(pubchemDir)
   files = ftp.nlst()
   for i in range(0, len(files)):
-    showProgress("downloading files (%s/%s)", i, len(files))
+    sys.stdout.write("\r> downloading files (%s/%s)" % (i, len(files)))
+    sys.stdout.flush()
     ftp.retrbinary("RETR %s" % files[i], open("%s/%s" % (localZippedDir, files[i]), 'wb').write)
   sys.stdout.write('\n')
   ftp.quit()
@@ -49,19 +46,22 @@ def downloadFiles():
 def unzipFiles():
   root,_,files = next(os.walk(localZippedDir))
   for i in range(0, len(files)):
-    showProgress("unzipping files (%s/%s)", i+1, len(files))
+    sys.stdout.write("\r> unzipping files (%s/%s)" % (i+1, len(files)))
+    sys.stdout.flush()
     archive = zipfile.ZipFile(os.path.join(root, files[i]), 'r')
     archive.extractall(localUnzippedDir)
+  sys.stdout.write("\n")
 
 def splitDataFiles():
+  fileNo = 0
   root,folders,_ = next(os.walk(localUnzippedDir))
   # Iterate over each folder containing gzipped files
   for j in range(0, len(folders)):
     _,_,gzfiles = next(os.walk(os.path.join(root, folders[j])))
     # Iterate over each gzipped file in the folder
     for i in range(0, len(gzfiles)):
-      showProgress("processing folder (%s/%s) files (%s/%s)", 
-                   j+1, len(folders), i+1, len(folders))
+      sys.stdout.write("\r> splitting folder (%s/%s) files (%s/%s)" %
+        (j+1, len(folders), i+1, len(gzfiles)))                 
       aid = gzfiles[i][:gzfiles[i].index('.')]
       sid2cidData, assayData = [], []
       with gzip.open(os.path.join(root, folders[j], gzfiles[i]), 'rb') as inf:
@@ -89,16 +89,16 @@ def loadMysqlTable(user, passwd, db):
   cursor = cnx.cursor()
   # Prepare table for insertion
   try:
-    query = "FLUSH TABLES;"
-    cursor.execute(query)
-    query = "ALTER TABLE `Bioassays` DISABLE KEYS;";
-    cursor.execute(query);
+    cursor.execute("FLUSH TABLES;")
+    cursor.execute("ALTER TABLE `Bioassays` DISABLE KEYS;");
+    cursor.execute("LOCK TABLES `Bioassays` WRITE;")
   except mysql.connector.Error as e:
     sys.stderr.write("x failed preparing Bioassays: %s\n" % e)
+
   # Execute insertions
   root,_,files = next(os.walk(localProcessedDir))
   for i in range(0, len(files)):
-    showProgress("loading files into table (%s/%s)", i+1, len(files))
+    sys.stdout.write("\r> loading files into table (%s/%s)" % (i+1, len(files)))
     try:
       query = (
           "LOAD DATA LOCAL INFILE '%s'"
@@ -116,31 +116,33 @@ def loadMysqlTable(user, passwd, db):
       cursor.execute(query)
     except mysql.connector.Error as e:
       sys.stderr.write("x failed loading data into Bioassays: %s\n" % e)
-    finally:
-      cnx.commit()
-      cnx.close()
-  # Rebuild indexes
+
+  # Commit changes, unlock the table and rebuild indexes
   try:
-    query = "ALTER TABLE `Bioassays` ENABLE KEYS;";
-    cursor.execute(query)
+    cursor.execute("UNLOCK TABLES;")
+    cursor.execute("ALTER TABLE `Bioassays` ENABLE KEYS;")
+    cnx.commit()
   except mysql.connector.Error as e:
     sys.stderr.write("x failed re-enabling keys on Bioassays: %s\n" % e)
-  
+  cursor.close()
+  cnx.close()
+
 
 def update(user, passwd, db):
   print "plugin: %s" % plugin
-  showProgress("creating space on local machine")
+  print "> creating space on local machine"
   _makedirs([assayDataDir, localZippedDir, localUnzippedDir, 
              localUngzippedDir, localProcessedDir, substanceDataDir])
-  # showProgress("downloading updated files")
-  # downloadFiles()
-  # showProgress("unzipping files");
-  # unzipFiles()
-  showProgress("begin splitting data into separate files")
+  print "> downloading updated files"
+  downloadFiles()
+  print "> unzipping files"
+  unzipFiles()
+  print "> begin splitting data into separate files"
   splitDataFiles()
-  showProgress("loading data into table")
+  print "> loading data into table"
   loadMysqlTable(user, passwd, db)
-  showProgress("%s complete", __name__)
+  print "> %s complete\n", __name__
+
 
 if __name__=="__main__":
   if len(sys.argv) < 4:
