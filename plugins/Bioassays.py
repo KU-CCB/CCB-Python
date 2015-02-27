@@ -91,8 +91,6 @@ def _splitDataFiles():
   with open(sid2cidMapFile, 'a') as outf: 
     for line in sid2cidData:
       outf.write(",".join(line)+"\n")
-        assayData = []
-        sid2cidData = []
 
 def _loadMysqlTable(user, passwd, db):
   cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
