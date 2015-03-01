@@ -88,6 +88,7 @@ def loadMysqlTable(user, passwd, db):
   cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
   # Prepare table for insertion
+  print "> preparing mysql"
   try:
     cursor.execute("ALTER TABLE `Bioassays` DISABLE KEYS;");
     cursor.execute("LOCK TABLES `Bioassays` WRITE;")
@@ -117,6 +118,7 @@ def loadMysqlTable(user, passwd, db):
       sys.stderr.write("x failed loading data into Bioassays: %s\n" % e)
 
   # Commit changes, unlock the table and rebuild indexes
+  print "> rebuilding table indexes" 
   try:
     cursor.execute("UNLOCK TABLES;")
     cursor.execute("ALTER TABLE `Bioassays` ENABLE KEYS;")
