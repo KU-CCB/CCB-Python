@@ -89,13 +89,14 @@ def loadMysqlTable(user, passwd, db):
   cursor = cnx.cursor()
   # Prepare table for insertion
   try:
-    cursor.execute("FLUSH TABLES;")
+    # cursor.execute("FLUSH TABLES;")
     cursor.execute("ALTER TABLE `Bioassays` DISABLE KEYS;");
     cursor.execute("LOCK TABLES `Bioassays` WRITE;")
   except mysql.connector.Error as e:
     sys.stderr.write("x failed preparing Bioassays: %s\n" % e)
 
   # Execute insertions
+  print "> gathering filed to be inserted..."
   root,_,files = next(os.walk(localProcessedDir))
   for i in range(0, len(files)):
     sys.stdout.write("\r> loading files into table (%s/%s)" % (i+1, len(files)))
@@ -130,15 +131,15 @@ def loadMysqlTable(user, passwd, db):
 
 def update(user, passwd, db):
   print "plugin: %s" % plugin
-  print "> creating space on local machine"
-  _makedirs([assayDataDir, localZippedDir, localUnzippedDir, 
-             localUngzippedDir, localProcessedDir, substanceDataDir])
-  print "> downloading updated files"
-  downloadFiles()
-  print "> unzipping files"
-  unzipFiles()
-  print "> begin splitting data into separate files"
-  splitDataFiles()
+  #print "> creating space on local machine"
+  #_makedirs([assayDataDir, localZippedDir, localUnzippedDir, 
+  #           localUngzippedDir, localProcessedDir, substanceDataDir])
+  #print "> downloading updated files"
+  #downloadFiles()
+  #print "> unzipping files"
+  #unzipFiles()
+  #print "> begin splitting data into separate files"
+  #splitDataFiles()
   print "> loading data into table"
   loadMysqlTable(user, passwd, db)
   print "> %s complete\n", __name__
