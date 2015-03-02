@@ -92,7 +92,7 @@ cnx = mysql.connector.connect(user=sys.argv[1], password=sys.argv[2])
 cursor = cnx.cursor()
 
 try: # Create the database
-  cursor.execute("CREATE DATABASE %s DEFAULT CHARACTER SET '%s'" % 
+  cursor.execute("CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET '%s'" % 
     (cfg.get('default','database'), cfg.get('default','charset')))
   cursor.execute("use %s;" % cfg.get('default','database'))
   print "> Database %s successfully created" % cfg.get('default','database')

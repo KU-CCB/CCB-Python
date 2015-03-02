@@ -96,6 +96,7 @@ def loadMysqlTable(user, passwd, db):
     sys.stderr.write("x failed preparing Bioassays: %s\n" % e)
     
   # Execute insertions
+  print "> gathering filed to be inserted..."
   root,_,files = next(os.walk(localProcessedDir))
   for i in range(0, len(files)):
     sys.stdout.write("\r> loading files into table (%08d/%08d)" % (i+1, len(files)))
@@ -142,7 +143,7 @@ def update(user, passwd, db):
   splitDataFiles()
   print "> loading data into table"
   loadMysqlTable(user, passwd, db)
-  print "> %s complete\n", __name__
+  print "> %s complete\n" % plugin
 
 if __name__=="__main__":
   if len(sys.argv) < 4:
