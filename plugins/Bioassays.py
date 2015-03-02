@@ -37,7 +37,7 @@ def downloadFiles():
   ftp.cwd(pubchemDir)
   files = ftp.nlst()
   for i in range(0, len(files)):
-    sys.stdout.write("\r> downloading files (%s/%s)" % (i, len(files)))
+    sys.stdout.write("\r> downloading files (%04d/%04d)" % (i+1, len(files)))
     sys.stdout.flush()
     ftp.retrbinary("RETR %s" % files[i], open("%s/%s" % (localZippedDir, files[i]), 'wb').write)
   sys.stdout.write('\n')
@@ -46,7 +46,7 @@ def downloadFiles():
 def unzipFiles():
   root,_,files = next(os.walk(localZippedDir))
   for i in range(0, len(files)):
-    sys.stdout.write("\r> unzipping files (%s/%s)" % (i+1, len(files)))
+    sys.stdout.write("\r> unzipping files (%04d/%04d)" % (i+1, len(files)))
     sys.stdout.flush()
     archive = zipfile.ZipFile(os.path.join(root, files[i]), 'r')
     archive.extractall(localUnzippedDir)
@@ -60,7 +60,7 @@ def splitDataFiles():
     _,_,gzfiles = next(os.walk(os.path.join(root, folders[j])))
     # Iterate over each gzipped file in the folder
     for i in range(0, len(gzfiles)):
-      sys.stdout.write("\r> splitting folder (%s/%s) files (%s/%s)" %
+      sys.stdout.write("\r> splitting folder (%04d/%04d) files (%04d/%04d)" %
         (j+1, len(folders), i+1, len(gzfiles)))                 
       aid = gzfiles[i][:gzfiles[i].index('.')]
       sid2cidData, assayData = [], []
@@ -79,7 +79,7 @@ def splitDataFiles():
           sid2cidData.append([aid, line[0], line[1]])
       with open("%s/%s.csv" % (localProcessedDir, aid), 'w') as outf:
         for line in assayData:                  
-          outf.write(",".join(line)+"\n")
+          out f.write(",".join(line)+"\n")
       with open(sid2cidMapFile, 'a') as outf: 
         for line in sid2cidData:
           outf.write(",".join(line)+"\n")
@@ -88,8 +88,8 @@ def loadMysqlTable(user, passwd, db):
   cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
   # Prepare table for insertion
+  print "> preparing mysql"
   try:
-    # cursor.execute("FLUSH TABLES;")
     cursor.execute("ALTER TABLE `Bioassays` DISABLE KEYS;");
     cursor.execute("LOCK TABLES `Bioassays` WRITE;")
   except mysql.connector.Error as e:
@@ -99,7 +99,7 @@ def loadMysqlTable(user, passwd, db):
   print "> gathering filed to be inserted..."
   root,_,files = next(os.walk(localProcessedDir))
   for i in range(0, len(files)):
-    sys.stdout.write("\r> loading files into table (%s/%s)" % (i+1, len(files)))
+    sys.stdout.write("\r> loading files into table (%04d/%04d)" % (i+1, len(files)))
     try:
       query = (
           "LOAD DATA LOCAL INFILE '%s'"
@@ -119,6 +119,7 @@ def loadMysqlTable(user, passwd, db):
       sys.stderr.write("x failed loading data into Bioassays: %s\n" % e)
 
   # Commit changes, unlock the table and rebuild indexes
+  print "> rebuilding table indexes" 
   try:
     cursor.execute("UNLOCK TABLES;")
     cursor.execute("ALTER TABLE `Bioassays` ENABLE KEYS;")
@@ -131,19 +132,18 @@ def loadMysqlTable(user, passwd, db):
 
 def update(user, passwd, db):
   print "plugin: %s" % plugin
-  #print "> creating space on local machine"
-  #_makedirs([assayDataDir, localZippedDir, localUnzippedDir, 
-  #           localUngzippedDir, localProcessedDir, substanceDataDir])
-  #print "> downloading updated files"
-  #downloadFiles()
-  #print "> unzipping files"
-  #unzipFiles()
-  #print "> begin splitting data into separate files"
-  #splitDataFiles()
+  print "> creating space on local machine"
+  _makedirs([assayDataDir, localZippedDir, localUnzippedDir, 
+             localUngzippedDir, localProcessedDir, substanceDataDir])
+  print "> downloading updated files"
+  downloadFiles()
+  print "> unzipping files"
+  unzipFiles()
+  print "> begin splitting data into separate files"
+  splitDataFiles()
   print "> loading data into table"
   loadMysqlTable(user, passwd, db)
-  print "> %s complete\n", __name__
-
+  print "> %s complete\n" % plugin
 
 if __name__=="__main__":
   if len(sys.argv) < 4:
