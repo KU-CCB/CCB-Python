@@ -94,11 +94,11 @@ def loadMysqlTable(user, passwd, db):
     cursor.execute("LOCK TABLES `Bioassays` WRITE;")
   except mysql.connector.Error as e:
     sys.stderr.write("x failed preparing Bioassays: %s\n" % e)
-
+    
   # Execute insertions
   root,_,files = next(os.walk(localProcessedDir))
   for i in range(0, len(files)):
-    sys.stdout.write("\r> loading files into table (%04d/%04d)" % (i+1, len(files)))
+    sys.stdout.write("\r> loading files into table (%08d/%08d)" % (i+1, len(files)))
     try:
       query = (
           "LOAD DATA LOCAL INFILE '%s'"
