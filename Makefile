@@ -1,5 +1,16 @@
 clean:
-	rm -rf *.pyc plugins/*.pyc plugins/store/*.pyc
+	rm -rf *.pyc 
+	rm -rf plugins/*.pyc 
+	rm plugins/store/*.pyc
+
+git:
+	@echo "> Initializing git submodules..."
+	@git submodule init
+	@git submodule update
+	
 links:
-	ln -s /usr/lib64/python2.6/site-packages/pybel.py plugins/store/pybel.py
-	ln -s /usr/lib64/python2.6/site-packages/openbabel.py plugins/store/openbabel.py
+	@echo "> Creating symlinks for libraries"
+	@ln -sf ./lib/PyPUG/pypug ./plugins/pypug.py
+
+all: git links
+	@echo "> Done!"
