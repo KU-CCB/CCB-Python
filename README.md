@@ -29,10 +29,3 @@ make clean
 ```sh
 make restore
 ```
-
-**You can also run each plugin file directly to update a single database table**
-
-```sh
-cd plugins/
-python Bioassays.py username password ccb
-```
