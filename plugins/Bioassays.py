@@ -84,8 +84,8 @@ def splitDataFiles():
         for line in sid2cidData:
           outf.write(",".join(line)+"\n")
      
-def loadMysqlTable(user, passwd, db):
-  cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
+def loadMysqlTable(host, user, passwd, db):
+  cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
   # Prepare table for insertion
   print "> preparing mysql"
@@ -129,7 +129,7 @@ def loadMysqlTable(user, passwd, db):
   cursor.close()
   cnx.close()
 
-def update(user, passwd, db):
+def update(user, passwd, db, host="127.0.0.1"):
   print "plugin: %s" % plugin
   print "> creating space on local machine"
   makedirs([assayDataDir, localZippedDir, localUnzippedDir, 
@@ -141,11 +141,5 @@ def update(user, passwd, db):
   print "> begin splitting data into separate files"
   splitDataFiles()
   print "> loading data into table"
-  loadMysqlTable(user, passwd, db)
+  loadMysqlTable(host, user, passwd, db)
   print "> %s complete\n" % plugin
-
-if __name__=="__main__":
-  if len(sys.argv) < 4:
-    print "Usage: %s <username> <password> <database>" % __file__
-    sys.exit()
-  update(sys.argv[1], sys.argv[2], sys.argv[3])

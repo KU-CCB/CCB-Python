@@ -32,8 +32,8 @@ def extractFiles():
       for line in inf:
         outf.write(line)
 
-def loadMysqlTable(user, passwd, db):
-  cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
+def loadMysqlTable(host, user, passwd, db):
+  cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
   try:
     query = (
@@ -54,18 +54,12 @@ def loadMysqlTable(user, passwd, db):
   except mysql.connector.Error as e:
     sys.stderr.write("x failed loading data: %s\n" % e)
 
-def update(user, passwd, db):
+def update(user, passwd, db, host="127.0.0.1"):
   print "plugin: %s" % plugin
   print "> downloading files"
   downloadFiles()
   print "> extracting files"
   extractFiles()
   print "> loading %s into table" % localFile
-  loadMysqlTable(user, passwd, db)
+  loadMysqlTable(host, user, passwd, db)
   print "> %s complete" % plugin
-
-if __name__=="__main__":
-  if len(sys.argv) < 4:
-    print "Usage: %s <username> <password> <database>" % __file__
-    sys.exit()
-  update(sys.argv[1], sys.argv[2], sys.argv[3])

@@ -24,8 +24,8 @@ def makedirs(dirs):
     if not os.path.exists(d):
       os.makedirs(d)
 
-def downloadDescriptions(user, passwd, db):
-  cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
+def downloadDescriptions(host, user, passwd, db):
+  cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
   cursor.execute("SELECT DISTINCT(assay_id) FROM Bioassays;")
   aids = map(itemgetter(0), cursor.fetchall())
@@ -42,8 +42,8 @@ def downloadDescriptions(user, passwd, db):
       outfile.write("%s %s" % (aids[i], description))
   sys.stdout.write('\n')
 
-def loadMysqlTable(user, passwd, db):
-  cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
+def loadMysqlTable(host, user, passwd, db):
+  cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
   root,_,files = next(os.walk(assayDescrDir))
   for i in range(0, len(files)):
@@ -64,18 +64,13 @@ def loadMysqlTable(user, passwd, db):
       sys.stderr.write("x failed loading data: %s\n" % e)
   sys.stdout.write('\n')
 
-def update(user, passwd, db):
+def update(user, passwd, db, host="127.0.0.1"):
+  print "IN assay_description with %s %s" % (user, host)
   print "plugin: %s" % plugin
   # print "> creating space on local machine"
   # makedirs([assayDescrDir])
   # print "> downloading assay descriptions"
-  # downloadDescriptions(user, passwd, db)
+  # downloadDescriptions(host, user, passwd, db)
   print "> loading data into table"
-  loadMysqlTable(user, passwd, db)
+  loadMysqlTable(host, user, passwd, db)
   print "> %s complete\n" % plugin
-
-if __name__=="__main__":
-  if len(sys.argv) < 4:
-    print "Usage: %s <username> <password> <database>" % __file__
-    sys.exit()
-  update(sys.argv[1], sys.argv[2], sys.argv[3])
