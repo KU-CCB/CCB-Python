@@ -11,6 +11,7 @@ if socket.gethostname()[-6:] == "ku.edu":
 	sys.path.append('/usr/lib/python2.6/site-packages/')
 import ConfigParser
 import plugins.Aid2GiGeneidAccessionUniprot
+import plugins.Assay_id_assay_description
 import plugins.Bioassays
 import subprocess
 
@@ -32,5 +33,6 @@ user, passwd = sys.argv[1], sys.argv[2]
 # Create database backup with mysqldump
 
 # Run table update scripts
-#plugins.Aid2GiGeneidAccessionUniprot.update(user, passwd, cfg.get('default','database'))
+plugins.Aid2GiGeneidAccessionUniprot.update(user, passwd, cfg.get('default','database'))
 plugins.Bioassays.update(user, passwd, cfg.get('default', 'database'))
+plugins.Assay_id_assay_description.update(user, passwd, cfg.get('default', 'database'))
