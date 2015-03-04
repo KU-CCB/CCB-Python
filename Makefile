@@ -15,7 +15,7 @@ restore: clean
 	git rm -rf $(PYPUG_LOCAL)
 
 git:
-	git submodule add --force $(PYPUG_REMOTE) $(PYPUG_LOCAL)
+	-git submodule add $(PYPUG_REMOTE) $(PYPUG_LOCAL)
 	git submodule init
 	git submodule update
 	
