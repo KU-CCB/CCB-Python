@@ -7,6 +7,7 @@ to use python2.7+ because the 'with' directive is not backwards compatible
 with v2.6.*
 """
 import socket
+import getopt
 if socket.gethostname()[-6:] == "ku.edu":
 	sys.path.append('/usr/lib/python2.6/site-packages/')
 import ConfigParser
@@ -18,7 +19,7 @@ import subprocess
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
 
-if len(sys.argv) < 3:
+def help():
   print "---------------------------------------------------------"
   print "%s - The %s database update script" % (__file__, cfg.get('default', 'database'))
   print "---------------------------------------------------------"
@@ -27,12 +28,33 @@ if len(sys.argv) < 3:
   print "* contact %s at <%s>" % (cfg.get('author', 'name'), cfg.get('author', 'email'))
   print "Usage: %s <username> <password>" % __file__
   print ""
-  sys.exit()
-user, passwd = sys.argv[1], sys.argv[2]
+
+shortargs = "hH:u:p:"
+longargs  = ["help","hostname=","username=","password="]
+
+# Read command line options
+opts, args = getopt.getopt(sys.argv[1:], shortargs, longargs)
+hostname, username, password, database = None,None,None,cfg.get('default','database')
+print opts, args
+for option, value in opts:
+  if option in ("-h", "--help"):
+    help();
+    sys.exit();
+  elif option in ("-u", "--username"):
+    username = value
+  elif option in ("-p", "--password"):
+    password = value
+  elif option in ("-H", "--hostname"):
+    hostname = value
+  else:
+    assert False, "unhandled option"
+
+print "Connecting to %s with username %s..." % (hostname, username)
 
 # Create database backup with mysqldump
 
 # Run table update scripts
-plugins.Aid2GiGeneidAccessionUniprot.update(user, passwd, cfg.get('default','database'))
-plugins.Bioassays.update(user, passwd, cfg.get('default', 'database'))
-plugins.Assay_id_assay_description.update(user, passwd, cfg.get('default', 'database'))
+plugins.Assay_id_assay_description.update(username, password, database, hostname);
+plugins.Aid2GiGeneidAccessionUniprot.update(username, password, database, hostname);
+#plugins.Bioassays.update(username, password, database, hostname);
+
