@@ -6,29 +6,33 @@ KU ITTC CCB-Python Database scripts
 .
 ├── config.cfg     # configuration file for database scripts
 ├── create-ccb.py  # creates the database
-├── plugin.stub.py # example file for creating a plugin
-├── data/          # data file folder
-├── makefile       # junk file management
+├── update-ccb.py  # top-level database update script
+├── lib/           # third-party software
 ├── plugins/       # database table update scripts (table name = script name)
-│   ├── Aid2GiGeneidAccessionUniprot.py
-│   ├── Bioassays.py
-│   ├── Compounds.py
-│   └── store/     # space for persistent files used by plugins
-├── README.md
-├── setup.py       # creates necessary files & folders
-└── update-ccb.py  # top-level database update script
+├── Makefile
+└── README.md
 ```
 
 #### Usage
 ```sh
-python setup.py
+make
 python create-ccb.py username password
 python update-ccb.py username password
+```
+
+##### To clean up the directory tree (remove junk files and submodules)
+```sh
+make clean
+```
+
+##### To restore up the directory tree (remove junk files and submodules)
+```sh
+make restore
 ```
 
 **You can also run each plugin file directly to update a single database table**
 
 ```sh
 cd plugins/
-python Bioassays.py username password 'ccb'
+python Bioassays.py username password ccb
 ```
