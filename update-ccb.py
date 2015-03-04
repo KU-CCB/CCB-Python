@@ -6,15 +6,16 @@ mysq.connector is only installed on the acf cluster for python2.6 but we need
 to use python2.7+ because the 'with' directive is not backwards compatible
 with v2.6.*
 """
+import subprocess
 import socket
 import getopt
 if socket.gethostname()[-6:] == "ku.edu":
 	sys.path.append('/usr/lib/python2.6/site-packages/')
 import ConfigParser
 import plugins.Aid2GiGeneidAccessionUniprot
-import plugins.Assay_id_assay_description
+#import plugins.Assay_id_assay_description
 import plugins.Bioassays
-import subprocess
+
 
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
@@ -35,7 +36,6 @@ longargs  = ["help","hostname=","username=","password="]
 # Read command line options
 opts, args = getopt.getopt(sys.argv[1:], shortargs, longargs)
 hostname, username, password, database = None,None,None,cfg.get('default','database')
-print opts, args
 for option, value in opts:
   if option in ("-h", "--help"):
     help();
@@ -49,12 +49,8 @@ for option, value in opts:
   else:
     assert False, "unhandled option"
 
-print "Connecting to %s with username %s..." % (hostname, username)
-
-# Create database backup with mysqldump
-
 # Run table update scripts
 plugins.Assay_id_assay_description.update(username, password, database, hostname);
 plugins.Aid2GiGeneidAccessionUniprot.update(username, password, database, hostname);
-#plugins.Bioassays.update(username, password, database, hostname);
+plugins.Bioassays.update(username, password, database, hostname);
 
