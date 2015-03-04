@@ -26,7 +26,7 @@ localProcessedDir = "%s/processed"   % assayDataDir
 assayDataFile     = "%s/assays.csv"  % localProcessedDir
 sid2cidMapFile    = "%s/sid2cid.csv" % substanceDataDir
 
-def _makedirs(dirs):
+def makedirs(dirs):
   for d in dirs:
     if not os.path.exists(d):
       os.makedirs(d)
@@ -133,7 +133,7 @@ def loadMysqlTable(user, passwd, db):
 def update(user, passwd, db):
   print "plugin: %s" % plugin
   print "> creating space on local machine"
-  _makedirs([assayDataDir, localZippedDir, localUnzippedDir, 
+  makedirs([assayDataDir, localZippedDir, localUnzippedDir, 
              localUngzippedDir, localProcessedDir, substanceDataDir])
   print "> downloading updated files"
   downloadFiles()
