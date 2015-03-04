@@ -2,6 +2,7 @@ import sys
 import os
 import ConfigParser
 from datetime import date
+from operator import itemgetter
 import zipfile
 import gzip
 import json
@@ -23,7 +24,13 @@ def makedirs(dirs):
     if not os.path.exists(d):
       os.makedirs(d)
 
-def downloadDescriptions():
+def downloadDescriptions(user, passwd, db):
+  cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
+  cursor = cnx.cursor()
+  cursor.execute("SELECT DISTINCT(assay_id) FROM Bioassays;")
+  aids = map(itemgetter(0), cursor.fetchall())
+  print aids
+  sys.exit()
   for aid in aids:
     with open("%s/%s.csv" % (assayDescrDir, aid), 'w') as outfile:
       # Remove whitespace in response using json.loads and json.dumps
@@ -35,8 +42,6 @@ def downloadDescriptions():
 def loadMysqlTable(user, passwd, db):
   cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
-  cursor.execute("SELECT DISTINCT(assay_id) FROM Bioassays;")
-  sys.exit()
   root,_,files = next(os.walk(assayDescrDir))
   for i in range(0, len(files)):
     try:
@@ -56,8 +61,8 @@ def update(user, passwd, db):
   print "plugin: %s" % plugin
   print "> creating space on local machine"
   makedirs([])
-  # print "> downloading assay descriptions"
-  # downloadDescriptions()
+  print "> downloading assay descriptions"
+  downloadDescriptions(user, passwd, db)
   print "> loading data into table"
   loadMysqlTable(user, passwd, db)
   print "> %s complete\n" % plugin
