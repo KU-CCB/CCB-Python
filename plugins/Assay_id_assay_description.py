@@ -17,7 +17,7 @@ plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
 server             = "ftp.ncbi.nih.gov"
-assayDescrDir = "%s/assays/description"
+assayDescrDir = "%s/assays/description" % cfg.get('default', 'tmp')
 
 def makedirs(dirs):
   for d in dirs:
@@ -29,8 +29,9 @@ def downloadDescriptions(user, passwd, db):
   cursor = cnx.cursor()
   cursor.execute("SELECT DISTINCT(assay_id) FROM Bioassays;")
   aids = map(itemgetter(0), cursor.fetchall())
+  return;
   for i in range(0, len(aids)):
-    sys.stdout.write("\r> downloading descriptiong for assay (%04d/%04d)" %
+    sys.stdout.write("\r> downloading description for assay (%08d/%08d)" %
         (i+1, len(aids)))
     sys.stdout.flush()
     with open("%s/%s.csv" % (assayDescrDir, aids[i]), 'w') as outfile:
@@ -46,6 +47,9 @@ def loadMysqlTable(user, passwd, db):
   cursor = cnx.cursor()
   root,_,files = next(os.walk(assayDescrDir))
   for i in range(0, len(files)):
+    sys.stdout.write("\r> loading files into table (%08d/%08d)" %
+      (i+1, len(files)))
+    sys.stdout.flush()
     try:
       query = (
         "LOAD DATA LOCAL INFILE '%s'"
@@ -54,17 +58,18 @@ def loadMysqlTable(user, passwd, db):
         " FIELDS TERMINATED BY ' '"
         " LINES TERMINATED BY '\n' ("
         "   assay_id,"
-        "   assay_description);")
-      cursor.execute(query, os.path.join(root, files[i]))
+        "   assay_description);"% os.path.join(root, files[i]))
+      cursor.execute(query)
     except mysql.connector.Error as e:
       sys.stderr.write("x failed loading data: %s\n" % e)
+  sys.stdout.write('\n')
 
 def update(user, passwd, db):
   print "plugin: %s" % plugin
-  print "> creating space on local machine"
-  makedirs([])
-  print "> downloading assay descriptions"
-  downloadDescriptions(user, passwd, db)
+  # print "> creating space on local machine"
+  # makedirs([assayDescrDir])
+  # print "> downloading assay descriptions"
+  # downloadDescriptions(user, passwd, db)
   print "> loading data into table"
   loadMysqlTable(user, passwd, db)
   print "> %s complete\n" % plugin

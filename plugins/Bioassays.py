@@ -61,7 +61,7 @@ def splitDataFiles():
     # Iterate over each gzipped file in the folder
     for i in range(0, len(gzfiles)):
       sys.stdout.write("\r> splitting folder (%04d/%04d) files (%04d/%04d)" %
-        (j+1, len(folders), i+1, len(gzfiles)))                 
+        (j+1, len(folders), i+1, len(gzfiles)))
       aid = gzfiles[i][:gzfiles[i].index('.')]
       sid2cidData, assayData = [], []
       with gzip.open(os.path.join(root, folders[j], gzfiles[i]), 'rb') as inf:
@@ -128,7 +128,6 @@ def loadMysqlTable(user, passwd, db):
     sys.stderr.write("x failed re-enabling keys on Bioassays: %s\n" % e)
   cursor.close()
   cnx.close()
-
 
 def update(user, passwd, db):
   print "plugin: %s" % plugin
