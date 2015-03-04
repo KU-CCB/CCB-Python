@@ -1,5 +1,5 @@
 # Database
-KU ITTC CCB-Python Database scripts
+KU ITTC CCB Python Database scripts
 
 #### Structure
 ```sh
