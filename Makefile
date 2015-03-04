@@ -4,7 +4,7 @@ PYPUG_REMOTE=https://github.com/KU-CCB/PyPUG.git
 PYPUG_LOCAL=./lib/PyPUG/
 
 setup: git links
-	@echo ">Done!"
+	@echo "> Done!"
 
 clean:
 	rm -rf *.pyc 
@@ -12,11 +12,11 @@ clean:
 	rm -rf plugins/store/*.pyc
 
 restore: clean
-	git rm -r $(PYPUG_LOCAL)
+	git rm -rf $(PYPUG_LOCAL)
 
 git:
 	@echo "> Initializing git submodules..."
-	@git submodule add $(PYPUG_REMOTE) $(PYPUG_LOCAL)
+	@git submodule add --force $(PYPUG_REMOTE) $(PYPUG_LOCAL)
 	@git submodule init
 	@git submodule update
 	
