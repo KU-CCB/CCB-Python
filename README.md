@@ -20,7 +20,7 @@ python create-ccb.py username password
 python update-ccb.py username password
 ```
 
-##### To clean up the directory tree (remove junk files and submodules)
+##### To clean up the directory tree (remove junk files)
 ```sh
 make clean
 ```
