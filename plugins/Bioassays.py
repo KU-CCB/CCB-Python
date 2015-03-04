@@ -79,7 +79,7 @@ def splitDataFiles():
           sid2cidData.append([aid, line[0], line[1]])
       with open("%s/%s.csv" % (localProcessedDir, aid), 'w') as outf:
         for line in assayData:                  
-          out f.write(",".join(line)+"\n")
+          outf.write(",".join(line)+"\n")
       with open(sid2cidMapFile, 'a') as outf: 
         for line in sid2cidData:
           outf.write(",".join(line)+"\n")

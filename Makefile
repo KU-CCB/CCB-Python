@@ -1,7 +1,7 @@
 .PHONY: setup clean restore git links
 
 PYPUG_REMOTE=https://github.com/KU-CCB/PyPUG.git
-PYPUG_LOCAL=./lib/PyPUG/
+PYPUG_LOCAL=$(CURDIR)/lib/PyPUG
 
 setup: git links
 	@echo "> Done!"
@@ -16,10 +16,10 @@ restore: clean
 
 git:
 	@echo "> Initializing git submodules..."
-	@git submodule add --force $(PYPUG_REMOTE) $(PYPUG_LOCAL)
-	@git submodule init
-	@git submodule update
+	git submodule add --force $(PYPUG_REMOTE) $(PYPUG_LOCAL)
+	git submodule init
+	git submodule update
 	
 links:
 	@echo "> Creating symlinks for libraries"
-	@ln -sf $(PYPUG_LOCAL)/pypug.py ./plugins/pypug.py
+	ln -sf $(PYPUG_LOCAL)/pypug.py ./plugins/pypug.py

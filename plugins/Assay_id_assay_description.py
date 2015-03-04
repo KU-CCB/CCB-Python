@@ -29,15 +29,17 @@ def downloadDescriptions(user, passwd, db):
   cursor = cnx.cursor()
   cursor.execute("SELECT DISTINCT(assay_id) FROM Bioassays;")
   aids = map(itemgetter(0), cursor.fetchall())
-  print aids
-  sys.exit()
-  for aid in aids:
-    with open("%s/%s.csv" % (assayDescrDir, aid), 'w') as outfile:
+  for i in range(0, len(aids)):
+    sys.stdout.write("\r> downloading descriptiong for assay (%04d/%04d)" %
+        (i+1, len(aids)))
+    sys.stdout.flush()
+    with open("%s/%s.csv" % (assayDescrDir, aids[i]), 'w') as outfile:
       # Remove whitespace in response using json.loads and json.dumps
       description = json.dumps(json.loads(
-        pypug.getAssayDescriptionFromAID(aid).encode('utf-8')), 
+        pypug.getAssayDescriptionFromAID(aids[i]).encode('utf-8')), 
         separators=(',', ': '))
-      outfile.write("%s %s" % (aid, description))
+      outfile.write("%s %s" % (aids[i], description))
+  sys.stdout.write('\n')
 
 def loadMysqlTable(user, passwd, db):
   cnx = mysql.connector.connect(user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
