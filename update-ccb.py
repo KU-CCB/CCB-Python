@@ -22,13 +22,15 @@ cfg.read("config.cfg")
 
 
 def help():
+  usage = ""
   print "---------------------------------------------------------"
   print "%s - The %s database update script" % (__file__, cfg.get('default', 'database'))
   print "---------------------------------------------------------"
-  print "* For information, see %s." % (cfg.get('repo', 'url'))
-  print "* Report issues at %s or " % cfg.get('repo', 'issues')
-  print "* contact %s at <%s>" % (cfg.get('author', 'name'), cfg.get('author', 'email'))
-  print "Usage: %s <username> <password>" % __file__
+  print "For information, see %s." % (cfg.get('repo', 'url'))
+  print "Report issues at %s" % cfg.get('repo', 'issues')
+  print "contact the author %s <%s>" % (cfg.get('author', 'name'), cfg.get('author', 'email'))
+  print ""
+  print "Usage: %s [-h|--hostname=127.0.0.1] [-u|--username] [-p|--password]" % __file__
   print ""
 
 # Read command line options
@@ -36,6 +38,9 @@ shortargs = "hH:u:p:"
 longargs  = ["help","hostname=","username=","password="]
 opts, args = getopt.getopt(sys.argv[1:], shortargs, longargs)
 hostname, username, password, database = None,None,None,cfg.get('default','database')
+if len(opts) == 0:
+  help()
+  sys.exit()
 for option, value in opts:
   if option in ("-h", "--help"):
     help()
