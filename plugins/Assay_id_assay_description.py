@@ -29,7 +29,6 @@ def downloadDescriptions(host, user, passwd, db):
   cursor = cnx.cursor()
   cursor.execute("SELECT DISTINCT(assay_id) FROM Bioassays;")
   aids = map(itemgetter(0), cursor.fetchall())
-  return;
   for i in range(0, len(aids)):
     sys.stdout.write("\r> downloading description for assay (%08d/%08d)" %
         (i+1, len(aids)))
@@ -65,7 +64,6 @@ def loadMysqlTable(host, user, passwd, db):
   sys.stdout.write('\n')
 
 def update(user, passwd, db, host):
-  print "IN assay_description with %s %s" % (user, host)
   print "plugin: [%s]" % plugin
   print "> creating space on local machine"
   makedirs([assayDescrDir])
