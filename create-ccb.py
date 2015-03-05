@@ -103,7 +103,6 @@ TABLES = {
     "`substance_id` " + TYPES["substance_id"] + ","
     "`compound_id`  " + TYPES["compound_id"]  + ","
     "PRIMARY KEY (`substance_id`),"
-    "FOREIGN KEY (`substance_id`) REFERENCES Bioassays(`substance_id`),"
     "KEY compound_id_idx (`compound_id`)"
     ") ENGINE=MyISAM DEFAULT CHARSET=latin1;"
   ),
@@ -112,8 +111,7 @@ TABLES = {
     "CREATE TABLE `Assay_id_assay_description` ("
     "`assay_id`          " + TYPES["assay_id"]          + ","
     "`assay_description` " + TYPES["assay_description"] + ","
-    "PRIMARY KEY (`assay_id`),"
-    "FOREIGN KEY (`assay_id`) REFERENCES Bioassays(`assay_id`)"
+    "PRIMARY KEY (`assay_id`)"
     ") ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED"
   )
 }
