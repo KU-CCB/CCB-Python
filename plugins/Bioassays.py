@@ -137,7 +137,7 @@ def loadMysqlTable(host, user, passwd, db):
 
 
 def update(user, passwd, db, host="127.0.0.1"):
-  print "plugin: %s" % plugin
+  print "plugin: [%s]" % plugin
   print "> creating space on local machine"
   makedirs([assayFolder, zippedFolder, unzippedFolder, 
              ungzippedFolder, substanceFolder])

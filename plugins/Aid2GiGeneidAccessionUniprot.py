@@ -1,5 +1,10 @@
 #!/usr/bin/python
 
+"""
+This file downloads and stores the file Aid2GiGeneidAccessionUniprot from
+PubChem found at ftp.ncbi.nih.gov/pubchem/Bioassay/Extras
+"""
+
 import sys
 import os
 import ConfigParser
@@ -47,15 +52,14 @@ def loadMysqlTable(host, user, passwd, db):
       " gi,"
       " gene_id,"
       " ncbi_accession,"
-      " uniprot_kb);"  % 
-      (localFile))
+      " uniprot_kb);" % (localFile))
     cursor.execute(query)
     cnx.commit()
   except mysql.connector.Error as e:
     sys.stderr.write("x failed loading data: %s\n" % e)
 
 def update(user, passwd, db, host="127.0.0.1"):
-  print "plugin: %s" % plugin
+  print "plugin: [%s]" % plugin
   print "> downloading files"
   downloadFiles()
   print "> extracting files"

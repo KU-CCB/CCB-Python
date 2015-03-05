@@ -58,7 +58,7 @@ def loadMysqlTable(host, user, passwd, db):
         " FIELDS TERMINATED BY ' '"
         " LINES TERMINATED BY '\n' ("
         "   assay_id,"
-        "   assay_description);"% os.path.join(root, files[i]))
+        "   assay_description);" % os.path.join(root, files[i]))
       cursor.execute(query)
     except mysql.connector.Error as e:
       sys.stderr.write("x failed loading data: %s\n" % e)
@@ -66,11 +66,11 @@ def loadMysqlTable(host, user, passwd, db):
 
 def update(user, passwd, db, host="127.0.0.1"):
   print "IN assay_description with %s %s" % (user, host)
-  print "plugin: %s" % plugin
-  # print "> creating space on local machine"
-  # makedirs([assayDescrDir])
-  # print "> downloading assay descriptions"
-  # downloadDescriptions(host, user, passwd, db)
+  print "plugin: [%s]" % plugin
+  print "> creating space on local machine"
+  makedirs([assayDescrDir])
+  print "> downloading assay descriptions"
+  downloadDescriptions(host, user, passwd, db)
   print "> loading data into table"
   loadMysqlTable(host, user, passwd, db)
   print "> %s complete\n" % plugin
