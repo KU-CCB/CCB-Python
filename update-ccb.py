@@ -68,8 +68,8 @@ if hostname is None: hostname = "127.0.0.1"
 #
 # There are some files that can run in a different order, but it is best not to
 # change the order at all. 
-plugins.Aid2GiGeneidAccessionUniprot.update(username, password, database, hostname);
-plugins.Bioassays.update(username, password, database, hostname);
+#plugins.Aid2GiGeneidAccessionUniprot.update(username, password, database, hostname);
+#plugins.Bioassays.update(username, password, database, hostname);
 plugins.Assay_id_assay_description.update(username, password, database, hostname);
 
 

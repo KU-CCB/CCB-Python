@@ -16,8 +16,8 @@ __all__ = ["update"]
 plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
-server             = "ftp.ncbi.nih.gov"
-assayDescrDir = "%s/assays/description" % cfg.get('default', 'tmp')
+server = "ftp.ncbi.nih.gov"
+assayDescriptionFolder = "%s/assays/description" % cfg.get('default', 'tmp')
 
 def makedirs(dirs):
   for d in dirs:
@@ -33,18 +33,18 @@ def downloadDescriptions(host, user, passwd, db):
     sys.stdout.write("\r> downloading description for assay (%08d/%08d)" %
         (i+1, len(aids)))
     sys.stdout.flush()
-    with open("%s/%s.csv" % (assayDescrDir, aids[i]), 'w') as outfile:
+    with open("%s/%s.csv" % (assayDescriptionFolder, aids[i]), 'w') as outfile:
       # Remove whitespace in response using json.loads and json.dumps
       description = json.dumps(json.loads(
         pypug.getAssayDescriptionFromAID(aids[i]).encode('utf-8')), 
-        separators=(',', ': '))
+        separators=(',', ':'))
       outfile.write("%s %s" % (aids[i], description))
   sys.stdout.write('\n')
 
 def loadMysqlTable(host, user, passwd, db):
   cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
-  root,_,files = next(os.walk(assayDescrDir))
+  root,_,files = next(os.walk(assayDescriptionFolder))
   for i in range(0, len(files)):
     sys.stdout.write("\r> loading files into table (%08d/%08d)" %
       (i+1, len(files)))
@@ -57,7 +57,7 @@ def loadMysqlTable(host, user, passwd, db):
         " FIELDS TERMINATED BY ' '"
         " LINES TERMINATED BY '\n' ("
         "   assay_id,"
-        "   assay_description);" % os.path.join(root, files[i]))
+        "   assay_description);" % (os.path.join(root, files[i])))
       cursor.execute(query)
     except mysql.connector.Error as e:
       sys.stderr.write("x failed loading data: %s\n" % e)
@@ -66,9 +66,10 @@ def loadMysqlTable(host, user, passwd, db):
 def update(user, passwd, db, host):
   print "plugin: [%s]" % plugin
   print "> creating space on local machine"
-  makedirs([assayDescrDir])
+  makedirs([assayDescriptionFolder])
   print "> downloading assay descriptions"
   downloadDescriptions(host, user, passwd, db)
   print "> loading data into table"
   loadMysqlTable(host, user, passwd, db)
   print "> %s complete\n" % plugin
+
