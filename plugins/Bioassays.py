@@ -136,7 +136,7 @@ def loadMysqlTable(host, user, passwd, db):
   cnx.close()
 
 
-def update(user, passwd, db, host="127.0.0.1"):
+def update(user, passwd, db, host):
   print "plugin: [%s]" % plugin
   print "> creating space on local machine"
   makedirs([assayFolder, zippedFolder, unzippedFolder, 

@@ -49,6 +49,9 @@ for option, value in opts:
   else:
     assert False, "unhandled option"
 
+if hostname is None: hostname = "127.0.0.1"
+
+
 # Run table update scripts
 plugins.Assay_id_assay_description.update(username, password, database, hostname);
 plugins.Aid2GiGeneidAccessionUniprot.update(username, password, database, hostname);

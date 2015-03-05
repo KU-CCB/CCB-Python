@@ -58,7 +58,7 @@ def loadMysqlTable(host, user, passwd, db):
   except mysql.connector.Error as e:
     sys.stderr.write("x failed loading data: %s\n" % e)
 
-def update(user, passwd, db, host="127.0.0.1"):
+def update(user, passwd, db, host):
   print "plugin: [%s]" % plugin
   print "> downloading files"
   downloadFiles()

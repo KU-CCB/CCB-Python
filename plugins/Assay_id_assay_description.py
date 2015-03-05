@@ -64,7 +64,7 @@ def loadMysqlTable(host, user, passwd, db):
       sys.stderr.write("x failed loading data: %s\n" % e)
   sys.stdout.write('\n')
 
-def update(user, passwd, db, host="127.0.0.1"):
+def update(user, passwd, db, host):
   print "IN assay_description with %s %s" % (user, host)
   print "plugin: [%s]" % plugin
   print "> creating space on local machine"
