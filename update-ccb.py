@@ -13,12 +13,13 @@ if socket.gethostname()[-6:] == "ku.edu":
 	sys.path.append('/usr/lib/python2.6/site-packages/')
 import ConfigParser
 import plugins.Aid2GiGeneidAccessionUniprot
-#import plugins.Assay_id_assay_description
+import plugins.Assay_id_assay_description
 import plugins.Bioassays
 
 
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
+
 
 def help():
   print "---------------------------------------------------------"
@@ -30,16 +31,15 @@ def help():
   print "Usage: %s <username> <password>" % __file__
   print ""
 
+# Read command line options
 shortargs = "hH:u:p:"
 longargs  = ["help","hostname=","username=","password="]
-
-# Read command line options
 opts, args = getopt.getopt(sys.argv[1:], shortargs, longargs)
 hostname, username, password, database = None,None,None,cfg.get('default','database')
 for option, value in opts:
   if option in ("-h", "--help"):
-    help();
-    sys.exit();
+    help()
+    sys.exit()
   elif option in ("-u", "--username"):
     username = value
   elif option in ("-p", "--password"):
@@ -53,7 +53,19 @@ if hostname is None: hostname = "127.0.0.1"
 
 
 # Run table update scripts
-plugins.Assay_id_assay_description.update(username, password, database, hostname);
+# DO NOT rearrange these function calls. If you should do so by mistake, the
+# order in which they should be run (which can be found on the github wiki) is:
+#
+# 1. Aid2GiGeneidAccessionUniprot
+# 2. Bioassays
+# 3. Substance_id_compound_id
+# 4. Assay_id_assay_description
+#
+# There are some files that can run in a different order, but it is best not to
+# change the order at all. 
 plugins.Aid2GiGeneidAccessionUniprot.update(username, password, database, hostname);
 plugins.Bioassays.update(username, password, database, hostname);
+plugins.Assay_id_assay_description.update(username, password, database, hostname);
+
+
 

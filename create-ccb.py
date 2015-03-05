@@ -5,31 +5,58 @@ TODO
 """
 
 import sys
-
 import socket
 # mysql.connector is only installed on the acf cluster for python2.6 but we need
 # to use python2.7+ because the 'with' directive is not backwards compatible
 # with v2.6.*
 if socket.gethostname()[-6:] == "ku.edu":
 	sys.path.append('/usr/lib/python2.6/site-packages/')
+import getopt
 import ConfigParser
 import mysql.connector
 from mysql.connector import errorcode
 
-if len(sys.argv) < 3:
-  print "CCBDB.create-ccb  The KU CCB Database creation script"
-  print "  For more information, see https://github.com/KU-CCB/CCBDB.git"
-  print ""
-  print "  For issues see https://github.com/KU-CCB/CCBDB/issues or"
-  print "  contact Kendal Harland <kendaljharland@gmail.com>"
-  print ""
-  print "  Usage: %s <username> <password>" % __file__
-  sys.exit()
 
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
 
-# s for each of the table columns restricted to a specific set of values 
+
+def help():
+  print "---------------------------------------------------------"
+  print "%s - The %s database update script" % (__file__, cfg.get('default', 'database'))
+  print "---------------------------------------------------------"
+  print "* For information, see %s." % (cfg.get('repo', 'url'))
+  print "* Report issues at %s or " % cfg.get('repo', 'issues')
+  print "* contact %s at <%s>" % (cfg.get('author', 'name'), cfg.get('author', 'email'))
+  print "Usage: %s <username> <password>" % __file__
+  print ""
+
+# Read command line options. If none are present, display help message and exit
+shortargs = "hH:u:p:"
+longargs  = ["help","hostname=","username=","password="]
+opts, args = getopt.getopt(sys.argv[1:], shortargs, longargs)
+hostname, username, password, database = None,None,None,cfg.get('default','database')
+if len(opts) == 0:
+  help()
+  sys.exit()
+
+for option, value in opts:
+  if option in ("-h", "--help"):
+    help()
+    sys.exit()
+  elif option in ("-u", "--username"):
+    username = value
+  elif option in ("-p", "--password"):
+    password = value
+  elif option in ("-H", "--hostname"):
+    hostname = value
+  else:
+    assert False, "unhandled option"
+
+if hostname is None: hostname = "127.0.0.1"
+
+
+# types for each of the table columns restricted to a specific set of values 
 # default (assay|substance|compound)_id to 0 if missing
 TYPES = {
   'assay_id':          "MEDIUMINT UNSIGNED DEFAULT 0",
@@ -88,7 +115,7 @@ TABLES = {
   )
 }
 
-cnx = mysql.connector.connect(user=sys.argv[1], password=sys.argv[2])
+cnx = mysql.connector.connect(host=hostname, user=username, password=password)
 cursor = cnx.cursor()
 
 try: # Create the database
