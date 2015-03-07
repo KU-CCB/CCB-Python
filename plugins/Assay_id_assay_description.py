@@ -35,10 +35,10 @@ def downloadDescriptions(host, user, passwd, db):
     sys.stdout.flush()
     with open("%s/%s.csv" % (assayDescriptionFolder, aids[i]), 'w') as outfile:
       # Remove whitespace in response using json.loads and json.dumps
-      description = json.dumps(json.loads(
-        pypug.getAssayDescriptionFromAID(aids[i]).encode('utf-8')), 
-        separators=(',', ':'))
-      outfile.write("%s %s" % (aids[i], description))
+      response = pypug.getAssayDescriptionFromAID(aids[i]).encode('utf-8')
+      if len(response > 2):
+        description = json.dumps(json.loads(response), separators=(',', ':'))
+        outfile.write("%s %s" % (aids[i], description))
   sys.stdout.write('\n')
 
 def loadMysqlTable(host, user, passwd, db):
@@ -72,4 +72,3 @@ def update(user, passwd, db, host):
   print "> loading data into table"
   loadMysqlTable(host, user, passwd, db)
   print "> %s complete\n" % plugin
-
