@@ -33,12 +33,15 @@ def downloadDescriptions(host, user, passwd, db):
     sys.stdout.write("\r> downloading description for assay (%08d/%08d)" %
         (i+1, len(aids)))
     sys.stdout.flush()
-    with open("%s/%s.csv" % (assayDescriptionFolder, aids[i]), 'w') as outfile:
-      # Remove whitespace in response using json.loads and json.dumps
-      response = pypug.getAssayDescriptionFromAID(aids[i]).encode('utf-8')
-      if len(response > 2):
-        description = json.dumps(json.loads(response), separators=(',', ':'))
-        outfile.write("%s %s" % (aids[i], description))
+    outFileName = "%s/%s.csv" % (assayDescriptionFolder, aids[i])
+    # Skip existing files
+    if not os.path.exists(outFileName):
+      with open(outFileName, 'w') as outfile:
+        # Remove whitespace in response using json.loads and json.dumps
+        response = pypug.getAssayDescriptionFromAID(aids[i]).encode('utf-8')
+        if len(response) > 2:
+          description = json.dumps(json.loads(response), separators=(',', ':'))
+          outfile.write("%s %s" % (aids[i], description))
   sys.stdout.write('\n')
 
 def loadMysqlTable(host, user, passwd, db):
