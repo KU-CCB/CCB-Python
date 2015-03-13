@@ -15,15 +15,15 @@ __all__ = ["update"]
 plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
-server          = "ftp.ncbi.nih.gov"
-pubchemURL      = "pubchem/Bioassay/Concise/CSV/Data"
-assayFolder     = "%s/assays"      % cfg.get('default','tmp')
-substanceFolder = "%s/substances"  % cfg.get('default','tmp')
-zippedFolder    = "%s/zipped"      % assayFolder
-unzippedFolder  = "%s/unzipped"    % assayFolder
-ungzippedFolder = "%s/ungzipped"   % assayFolder
-assayFolderFile = "%s/assays.csv"  % ungzippedFolder
-sid2cidMapFile  = "%s/sid2cid.csv" % substanceFolder
+server             = "ftp.ncbi.nih.gov"
+pubchemURL         = "pubchem/Bioactivity/Concise/CSV/Data"
+activityFolder     = "%s/activities"  % cfg.get('default','tmp')
+substanceFolder    = "%s/substances"  % cfg.get('default','tmp')
+zippedFolder       = "%s/zipped"      % activityFolder
+unzippedFolder     = "%s/unzipped"    % activityFolder
+ungzippedFolder    = "%s/ungzipped"   % activityFolder
+activityFolderFile = "%s/activities.csv"  % ungzippedFolder
+sid2cidMapFile     = "%s/sid2cid.csv" % substanceFolder
 
 
 def makedirs(dirs):
@@ -65,7 +65,7 @@ def ungzipFiles():
       sys.stdout.flush()
 
       aid = gzfiles[j][:gzfiles[j].index('.')]
-      sid2cidData, assayData = [], []
+      sid2cidData, activityData = [], []
       with gzip.open(os.path.join(root, folders[i], gzfiles[j]), 'rb') as inf:
         inf.readline()
         for line in inf:
@@ -73,8 +73,8 @@ def ungzipFiles():
           # * Index:        0    2        3      4    5
           # * Keep the aid, sid, outcome, score, url, comment
           # * Discard everything after column 7 (active concentration and data
-          #   specified at ftp://ftp.ncbi.nih.gov/pubchem/Bioassay/Concise/CSV/README)```
-          assayData.append([aid, line[0], line[2], line[3], line[4], line[5]])
+          #   specified at ftp://ftp.ncbi.nih.gov/pubchem/Bioactivity/Concise/CSV/README)```
+          activityData.append([aid, line[0], line[2], line[3], line[4], line[5]])
           # * Index:   0       1
           # * Keep the sid and cid
           # * We have to store the sid and cid data from these files in a separate database
@@ -83,7 +83,7 @@ def ungzipFiles():
           sid2cidData.append([aid, line[0], line[1]])
 
       with open("%s/%s.csv" % (ungzippedFolder, aid), 'w') as outf:
-        for line in assayData:                  
+        for line in activityData:                  
           outf.write(",".join(line)+"\n")
 
       with open(sid2cidMapFile, 'a') as outf: 
@@ -99,10 +99,10 @@ def loadMysqlTable(host, user, passwd, db):
   # Disable table keys and lock the Bioassasys table. This will speed up writes since
   # we are making so many LOAD DATA LOCAL INFILE calls.
   try:
-    cursor.execute("ALTER TABLE `Bioassays` DISABLE KEYS;");
-    cursor.execute("LOCK TABLES `Bioassays` WRITE;")
+    cursor.execute("ALTER TABLE `Activities` DISABLE KEYS;");
+    cursor.execute("LOCK TABLES `Activities` WRITE;")
   except mysql.connector.Error as e:
-    sys.stderr.write("x failed preparing Bioassays: %s\n" % e)
+    sys.stderr.write("x failed preparing Activities: %s\n" % e)
     
   root,_,files = next(os.walk(ungzippedFolder))
   for i in range(0, len(files)):
@@ -111,26 +111,26 @@ def loadMysqlTable(host, user, passwd, db):
     try:
       query = (
           "LOAD DATA LOCAL INFILE '%s' REPLACE "
-          "INTO TABLE Bioassays "
+          "INTO TABLE Activities "
           "FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' ("
-          " assay_id,"
+          " activity_id,"
           " substance_id,"
           " activity_outcome,"
           " activity_score,"
           " activity_URL,"
-          " assay_comment);" % (os.path.join(root, files[i])))
+          " activity_comment);" % (os.path.join(root, files[i])))
       cursor.execute(query)
     except mysql.connector.Error as e:
-      sys.stderr.write("x failed loading data into Bioassays: %s\n" % e)
+      sys.stderr.write("x failed loading data into Activities: %s\n" % e)
   sys.stdout.write('\n')
 
   # Unlock the tables and rebuild  indexes. This can also take a very long time
   # to complete.
   try:
     cursor.execute("UNLOCK TABLES;")
-    cursor.execute("ALTER TABLE `Bioassays` ENABLE KEYS;")
+    cursor.execute("ALTER TABLE `Activities` ENABLE KEYS;")
   except mysql.connector.Error as e:
-    sys.stderr.write("x failed re-enabling keys on Bioassays: %s\n" % e)
+    sys.stderr.write("x failed re-enabling keys on Activities: %s\n" % e)
 
   cursor.close()
   cnx.close()
@@ -139,7 +139,7 @@ def loadMysqlTable(host, user, passwd, db):
 def update(user, passwd, db, host):
   print "plugin: [%s]" % plugin
   print "> creating space on local machine"
-  makedirs([assayFolder, zippedFolder, unzippedFolder, 
+  makedirs([activityFolder, zippedFolder, unzippedFolder, 
              ungzippedFolder, substanceFolder])
   print "> downloading updated files"
   downloadFiles()
