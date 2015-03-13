@@ -71,6 +71,7 @@ TYPES = {
   'activity_URL':      "TEXT",
   'assay_description': "MEDIUMTEXT", # Needs check, might have to be larger depending on description format (JSON, ASNX, etc.)
   'assay_comment':     "MEDIUMTEXT", # Needs check
+  'updated_date':      "TIMESTAMP"
 }
 
 TABLES = {
@@ -82,35 +83,42 @@ TABLES = {
     "`gene_id`        " + TYPES["gene_id"]        + ","
     "`ncbi_accession` " + TYPES["ncbi_accession"] + ","
     "`uniprot_kb`     " + TYPES["uniprot_kb"]     + ","
+    "`updated_date`   " + TYPES["updated_date"]   + ","
     "PRIMARY KEY (`assay_id`,`gi`,`gene_id`)" # what should this be?
     ") ENGINE=MyISAM DEFAULT CHARSET=latin1;"
   ),
 
-  'Bioassays': (
-    "CREATE TABLE `Bioassays` ("
+  'Activites': (
+    "CREATE TABLE `Activites` ("
     "`assay_id`          " + TYPES["assay_id"]         + ","
     "`substance_id`      " + TYPES["substance_id"]     + ","
+    "`compound_id`       " + TYPES["compound_id"]      + ","
     "`activity_outcome`  " + TYPES["activity_outcome"] + ","
     "`activity_score`    " + TYPES["activity_score"]   + ","
     "`activity_URL`      " + TYPES["activity_URL"]     + ","
-    "`assay_comment`     " + TYPES["assay_comment"]    + ","
-    "PRIMARY KEY (`assay_id`)"
+    "`updated_date`      " + TYPES["updated_date"]     + ","
+    "PRIMARY KEY (`assay_id`,`substance_id`),"
+    "INDEX  substance_id_idx (`substance_id`),"
+    "INDEX  compound_id_idx  (`compound_id`)"
     ") ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED"
   ),
 
-  'Substance_id_compound_id': (
+  'Substances': (
     "CREATE TABLE `substance_id_compound_id` ("
     "`substance_id` " + TYPES["substance_id"] + ","
     "`compound_id`  " + TYPES["compound_id"]  + ","
+    "`updated_date` " + TYPES["updated_date"] + ","
     "PRIMARY KEY (`substance_id`),"
-    "KEY compound_id_idx (`compound_id`)"
+    "INDEX compound_id_idx (`compound_id`)"
     ") ENGINE=MyISAM DEFAULT CHARSET=latin1;"
   ),
 
-  'Assay_id_assay_description': (
+  'Assays': (
     "CREATE TABLE `Assay_id_assay_description` ("
     "`assay_id`          " + TYPES["assay_id"]          + ","
     "`assay_description` " + TYPES["assay_description"] + ","
+    "`assay_comment`     " + TYPES["assay_comment"]     + ","
+    "`updated_date`      " + TYPES["updated_date"]      + ","
     "PRIMARY KEY (`assay_id`)"
     ") ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED"
   )
