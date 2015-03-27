@@ -14,6 +14,8 @@ import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector.constants import ClientFlag
 
+import logger
+
 __all__ = ["update"]
 plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
 cfg = ConfigParser.ConfigParser()
@@ -25,6 +27,7 @@ localArchive = "%s/%s" % (cfg.get('default','tmp'), pubchemFile)
 localFile   = localArchive[:-3]
 
 def downloadFiles():
+  logger.log("downloading %s" % pubchemFile)
   ftp = FTP(server)
   ftp.login() # anonymous
   ftp.cwd(pubchemDir)
@@ -32,12 +35,14 @@ def downloadFiles():
   ftp.quit()
 
 def extractFiles():
+  logger.log("extracting %s" % localArchive)
   with gzip.open(localArchive, 'rb') as inf:
     with open(localFile, 'w') as outf:
       for line in inf:
         outf.write(line)
 
 def loadMysqlTable(host, user, passwd, db):
+  logger.log("loading %s into MySQL" % localFile)
   cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
   try:
@@ -56,14 +61,11 @@ def loadMysqlTable(host, user, passwd, db):
     cursor.execute(query)
     cnx.commit()
   except mysql.connector.Error as e:
-    sys.stderr.write("x failed loading data: %s\n" % e)
+    logger.error(str(e))
 
 def update(user, passwd, db, host):
-  print "plugin: [%s]" % plugin
-  print "> downloading files"
+  logger.log("starting update")
   downloadFiles()
-  print "> extracting files"
   extractFiles()
-  print "> loading %s into table" % localFile
   loadMysqlTable(host, user, passwd, db)
-  print "> %s complete" % plugin
+  logger.log("update complete")

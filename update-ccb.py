@@ -13,7 +13,6 @@ if socket.gethostname()[-6:] == "ku.edu":
 	sys.path.append('/usr/lib/python2.6/site-packages/')
 import ConfigParser
 import plugins.Aid2GiGeneidAccessionUniprot
-import plugins.Assays
 import plugins.Activities
 
 
@@ -68,9 +67,5 @@ if hostname is None: hostname = "127.0.0.1"
 #
 # There are some files that can run in a different order, but it is best not to
 # change the order at all. 
-#plugins.Aid2GiGeneidAccessionUniprot.update(username, password, database, hostname);
-#plugins.Activities.update(username, password, database, hostname);
-plugins.Assays.update(username, password, database, hostname);
-
-
-
+plugins.Aid2GiGeneidAccessionUniprot.update(username, password, database, hostname);
+plugins.Activities.update(username, password, database, hostname);
