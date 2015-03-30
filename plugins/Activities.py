@@ -42,9 +42,6 @@ def downloadFiles():
   for i in range(0, len(files)):
     logger.log("downloading file: (%04d/%04d) %s" % (i+1, len(files), files[i]))
     ftp.retrbinary("RETR %s" % files[i], open("%s/%s" % (zippedFolder, files[i]), 'wb').write)
-    if i > 10: 
-      ftp.quit()
-      return
   ftp.quit()
 
 def unzipFiles():
