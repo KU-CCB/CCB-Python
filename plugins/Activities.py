@@ -15,15 +15,15 @@ __all__ = ["update"]
 plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
-server             = "ftp.ncbi.nih.gov"
-pubchemURL         = "pubchem/Bioactivity/Concise/CSV/Data"
-activityFolder     = "%s/activities"  % cfg.get('default','tmp')
-substanceFolder    = "%s/substances"  % cfg.get('default','tmp')
-zippedFolder       = "%s/zipped"      % activityFolder
-unzippedFolder     = "%s/unzipped"    % activityFolder
-ungzippedFolder    = "%s/ungzipped"   % activityFolder
-activityFolderFile = "%s/activities.csv"  % ungzippedFolder
-sid2cidMapFile     = "%s/sid2cid.csv" % substanceFolder
+server = "ftp.ncbi.nih.gov"
+pubchemURL = "pubchem/Bioactivity/Concise/CSV/Data"
+activityFolder = "%s/activities" % cfg.get('default','tmp')
+substanceFolder = "%s/substances" % cfg.get('default','tmp')
+zippedFolder = "%s/zipped" % activityFolder
+unzippedFolder = "%s/unzipped" % activityFolder
+ungzippedFolder = "%s/ungzipped" % activityFolder
+activityFolderFile = "%s/activities.csv" % ungzippedFolder
+sid2cidMapFile = "%s/sid2cid.csv" % substanceFolder
 
 
 def makedirs(dirs):
