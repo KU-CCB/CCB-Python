@@ -14,11 +14,10 @@ if socket.gethostname()[-6:] == "ku.edu":
 import ConfigParser
 import plugins.Aid2GiGeneidAccessionUniprot
 import plugins.Activities
-
+import plugins.Asssays
 
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
-
 
 def help():
   usage = ""
@@ -69,3 +68,5 @@ if hostname is None: hostname = "127.0.0.1"
 # change the order at all. 
 plugins.Aid2GiGeneidAccessionUniprot.update(username, password, database, hostname);
 plugins.Activities.update(username, password, database, hostname);
+plugins.Assays.update(username, password, database, hostname);
+	
