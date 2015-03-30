@@ -20,11 +20,11 @@ __all__ = ["update"]
 plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
-server      = "ftp.ncbi.nih.gov"
-pubchemDir  = "pubchem/Bioassay/Extras"
+server = "ftp.ncbi.nih.gov"
+pubchemDir = "pubchem/Bioassay/Extras"
 pubchemFile = "Aid2GiGeneidAccessionUniprot.gz"
 localArchive = "%s/%s" % (cfg.get('default','tmp'), pubchemFile)
-localFile   = localArchive[:-3]
+localFile = localArchive[:-3]
 
 def downloadFiles():
   logger.log("downloading %s" % pubchemFile)
@@ -43,9 +43,9 @@ def extractFiles():
 
 def loadMysqlTable(host, user, passwd, db):
   logger.log("loading %s into MySQL" % localFile)
-  cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
-  cursor = cnx.cursor()
   try:
+    cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
+    cursor = cnx.cursor()
     query = (
       "LOAD DATA LOCAL INFILE '%s'"
       " REPLACE"
@@ -64,8 +64,13 @@ def loadMysqlTable(host, user, passwd, db):
     logger.error(str(e))
 
 def update(user, passwd, db, host):
-  logger.log("starting update")
-  downloadFiles()
-  extractFiles()
-  loadMysqlTable(host, user, passwd, db)
-  logger.log("update complete")
+  logger.log("beginning update")
+  try:
+    logger.log("starting update")
+    downloadFiles()
+    extractFiles()
+    loadMysqlTable(host, user, passwd, db)
+    logger.log("update complete")
+  except Exception as e: # any uncaught errors
+    sys.stderr.write(str(e))
+    logger.error(str(e))

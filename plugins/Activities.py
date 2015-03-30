@@ -11,59 +11,56 @@ import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector.constants import ClientFlag
 
+import logger
+
 __all__ = ["update"]
 plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
-server             = "ftp.ncbi.nih.gov"
-pubchemURL         = "pubchem/Bioactivity/Concise/CSV/Data"
-activityFolder     = "%s/activities"  % cfg.get('default','tmp')
-substanceFolder    = "%s/substances"  % cfg.get('default','tmp')
-zippedFolder       = "%s/zipped"      % activityFolder
-unzippedFolder     = "%s/unzipped"    % activityFolder
-ungzippedFolder    = "%s/ungzipped"   % activityFolder
-activityFolderFile = "%s/activities.csv"  % ungzippedFolder
-sid2cidMapFile     = "%s/sid2cid.csv" % substanceFolder
-
+server = "ftp.ncbi.nih.gov"
+pubchemURL = "pubchem/Bioassay/Concise/CSV/Data"
+activityFolder = "%s/activities" % cfg.get('default','tmp')
+substanceFolder = "%s/substances" % cfg.get('default','tmp')
+zippedFolder = "%s/zipped" % activityFolder
+unzippedFolder = "%s/unzipped" % activityFolder
+ungzippedFolder = "%s/ungzipped" % activityFolder
+activityFolderFile = "%s/activities.csv" % ungzippedFolder
+sid2cidMapFile = "%s/sid2cid.csv" % substanceFolder
 
 def makedirs(dirs):
+  logger.log("creating directories: %s" % dirs)
   for d in dirs:
     if not os.path.exists(d):
       os.makedirs(d)
-
 
 def downloadFiles():
   ftp = FTP(server)
   ftp.login() # anonymous
   ftp.cwd(pubchemURL)
   files = ftp.nlst()
+  logger.log("begin ftp file retrieval at %s" % server + "/" + pubchemURL)
   for i in range(0, len(files)):
-    sys.stdout.write("\r> downloading files (%04d/%04d)" % (i+1, len(files)))
-    sys.stdout.flush()
+    logger.log("downloading file: (%04d/%04d) %s" % (i+1, len(files), files[i]))
     ftp.retrbinary("RETR %s" % files[i], open("%s/%s" % (zippedFolder, files[i]), 'wb').write)
-  sys.stdout.write('\n')
+    if i > 10: 
+      ftp.quit()
+      return
   ftp.quit()
-
 
 def unzipFiles():
   root,_,files = next(os.walk(zippedFolder))
   for i in range(0, len(files)):
-    sys.stdout.write("\r> unzipping files (%04d/%04d)" % (i+1, len(files)))
-    sys.stdout.flush()
+    logger.log("unzipping file: (%04d/%04d) %s" % (i+1, len(files), files[i]))
     archive = zipfile.ZipFile(os.path.join(root, files[i]), 'r')
     archive.extractall(unzippedFolder)
-  sys.stdout.write("\n")
-
 
 def ungzipFiles():
   root,folders,_ = next(os.walk(unzippedFolder))
   for i in range(0, len(folders)):
     _,_,gzfiles = next(os.walk(os.path.join(root, folders[i])))
     for j in range(0, len(gzfiles)):
-      sys.stdout.write("\r> ungzipping folder (%04d/%04d) file (%04d/%04d)" % 
-        (i+1, len(folders), j+1, len(gzfiles)))
-      sys.stdout.flush()
-
+      logger.log("ungzipping folder (%04d/%04d) file (%04d/%04d) %s" % 
+        (i+1, len(folders), j+1, len(gzfiles), gzfiles[j]))
       aid = gzfiles[j][:gzfiles[j].index('.')]
       sid2cidData, activityData = [], []
       with gzip.open(os.path.join(root, folders[i], gzfiles[j]), 'rb') as inf:
@@ -81,33 +78,28 @@ def ungzipFiles():
           #   table, so we'll write the file here and pass it off to the next table:
           #   Substance_id_compound_id
           sid2cidData.append([aid, line[0], line[1]])
-
       with open("%s/%s.csv" % (ungzippedFolder, aid), 'w') as outf:
         for line in activityData:                  
           outf.write(",".join(line)+"\n")
-
       with open(sid2cidMapFile, 'a') as outf: 
         for line in sid2cidData:
           outf.write(",".join(line)+"\n")
-    sys.stdout.write('\n')
      
 
 def loadMysqlTable(host, user, passwd, db):
   cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
-
   # Disable table keys and lock the Bioassasys table. This will speed up writes since
   # we are making so many LOAD DATA LOCAL INFILE calls.
   try:
     cursor.execute("ALTER TABLE `Activities` DISABLE KEYS;");
     cursor.execute("LOCK TABLES `Activities` WRITE;")
   except mysql.connector.Error as e:
-    sys.stderr.write("x failed preparing Activities: %s\n" % e)
+    logger.error(str(e))
     
   root,_,files = next(os.walk(ungzippedFolder))
   for i in range(0, len(files)):
-    sys.stdout.write("\r> loading files into table (%08d/%08d)" % (i+1, len(files)))
-    sys.stdout.flush()
+    logger.log("loading files into table (%08d/%08d) %s" % (i+1, len(files), files[i]))
     try:
       query = (
           "LOAD DATA LOCAL INFILE '%s' REPLACE "
@@ -121,8 +113,7 @@ def loadMysqlTable(host, user, passwd, db):
           " activity_comment);" % (os.path.join(root, files[i])))
       cursor.execute(query)
     except mysql.connector.Error as e:
-      sys.stderr.write("x failed loading data into Activities: %s\n" % e)
-  sys.stdout.write('\n')
+      logger.error(str(e))
 
   # Unlock the tables and rebuild  indexes. This can also take a very long time
   # to complete.
@@ -130,23 +121,26 @@ def loadMysqlTable(host, user, passwd, db):
     cursor.execute("UNLOCK TABLES;")
     cursor.execute("ALTER TABLE `Activities` ENABLE KEYS;")
   except mysql.connector.Error as e:
-    sys.stderr.write("x failed re-enabling keys on Activities: %s\n" % e)
-
+    logger.error(str(e))
   cursor.close()
   cnx.close()
 
 
 def update(user, passwd, db, host):
-  print "plugin: [%s]" % plugin
-  print "> creating space on local machine"
-  makedirs([activityFolder, zippedFolder, unzippedFolder, 
-             ungzippedFolder, substanceFolder])
-  print "> downloading updated files"
-  downloadFiles()
-  print "> unzipping files"
-  unzipFiles()
-  print "> begin splitting data into separate files"
-  ungzipFiles()
-  print "> loading data into table"
-  loadMysqlTable(host, user, passwd, db)
-  print "> %s complete\n" % plugin
+  logger.log("beginning update")
+  directories = [
+    activityFolder, 
+    zippedFolder, 
+    unzippedFolder, 
+    ungzippedFolder, 
+    substanceFolder];
+  try:
+    makedirs(directories)
+    downloadFiles()
+    unzipFiles()
+    ungzipFiles()
+    loadMysqlTable(host, user, passwd, db)
+    logger.log("update complete")
+  except Exception as e: # Any uncaught errors
+    sys.stderr.write(str(e))
+    logger.error(str(e)) 
