@@ -62,8 +62,6 @@ def loadMysqlTable(host, user, passwd, db):
     cnx.commit()
   except mysql.connector.Error as e:
     logger.error(str(e))
-  except Exception as e:
-    logger.error(str(e))
 
 def update(user, passwd, db, host):
   logger.log("beginning update")
