@@ -66,8 +66,11 @@ def loadMysqlTable(host, user, passwd, db):
     logger.error(str(e))
 
 def update(user, passwd, db, host):
-  logger.log("starting update")
-  downloadFiles()
-  extractFiles()
-  loadMysqlTable(host, user, passwd, db)
-  logger.log("update complete")
+  try:
+    logger.log("starting update")
+    downloadFiles()
+    extractFiles()
+    loadMysqlTable(host, user, passwd, db)
+    logger.log("update complete")
+  except Exception as e: # any uncaught errors
+    logger.error(str(e))
