@@ -72,4 +72,5 @@ def update(user, passwd, db, host):
     loadMysqlTable(host, user, passwd, db)
     logger.log("update complete")
   except Exception as e: # any uncaught errors
+    sys.stderr.write(str(e))
     logger.error(str(e))
