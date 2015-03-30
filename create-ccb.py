@@ -88,8 +88,8 @@ TABLES = {
     ") ENGINE=MyISAM DEFAULT CHARSET=latin1;"
   ),
 
-  'Activites': (
-    "CREATE TABLE `Activites` ("
+  'Activities': (
+    "CREATE TABLE `Activities` ("
     "`assay_id`          " + TYPES["assay_id"]         + ","
     "`substance_id`      " + TYPES["substance_id"]     + ","
     "`compound_id`       " + TYPES["compound_id"]      + ","
@@ -100,7 +100,7 @@ TABLES = {
     "PRIMARY KEY (`assay_id`,`substance_id`),"
     "INDEX  substance_id_idx (`substance_id`),"
     "INDEX  compound_id_idx  (`compound_id`)"
-    ") ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED"
+    ") ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORM  AT=FIXED"
   ),
 
   'Substances': (
@@ -144,7 +144,7 @@ except mysql.connector.Error as e:
   sys.stderr.write("x Failed configuring database: %s\n" % e)
   sys.exit()
 
-try: # Access the databse
+try: # Access the database
   cursor.execute("use %s" % database)
 except mysql.connector.Error as e:
   sys.stderr.write("x Failed to access database: %s\n" % e)
