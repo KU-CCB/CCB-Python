@@ -66,6 +66,7 @@ def loadMysqlTable(host, user, passwd, db):
     logger.error(str(e))
 
 def update(user, passwd, db, host):
+  logger.log("beginning update")
   try:
     logger.log("starting update")
     downloadFiles()
