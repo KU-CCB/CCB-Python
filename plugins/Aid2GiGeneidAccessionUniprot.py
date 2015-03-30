@@ -43,9 +43,9 @@ def extractFiles():
 
 def loadMysqlTable(host, user, passwd, db):
   logger.log("loading %s into MySQL" % localFile)
-  cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
-  cursor = cnx.cursor()
   try:
+    cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
+    cursor = cnx.cursor()
     query = (
       "LOAD DATA LOCAL INFILE '%s'"
       " REPLACE"
@@ -61,6 +61,8 @@ def loadMysqlTable(host, user, passwd, db):
     cursor.execute(query)
     cnx.commit()
   except mysql.connector.Error as e:
+    logger.error(str(e))
+  except Exception as e:
     logger.error(str(e))
 
 def update(user, passwd, db, host):
