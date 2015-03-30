@@ -14,7 +14,7 @@ if socket.gethostname()[-6:] == "ku.edu":
 import ConfigParser
 import plugins.Aid2GiGeneidAccessionUniprot
 import plugins.Activities
-import plugins.Asssays
+import plugins.Assays
 
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
