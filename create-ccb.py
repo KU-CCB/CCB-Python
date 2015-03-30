@@ -114,7 +114,7 @@ TABLES = {
   ),
 
   'Assays': (
-    "CREATE TABLE `Assays` ("
+    "CREATE TABLE `Assays` (" 
     "`assay_id`          " + TYPES["assay_id"]          + ","
     "`assay_description` " + TYPES["assay_description"] + ","
     "`assay_comment`     " + TYPES["assay_comment"]     + ","
