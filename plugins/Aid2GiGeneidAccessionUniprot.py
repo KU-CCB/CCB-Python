@@ -20,11 +20,11 @@ __all__ = ["update"]
 plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
-server      = "ftp.ncbi.nih.gov"
-pubchemDir  = "pubchem/Bioassay/Extras"
+server = "ftp.ncbi.nih.gov"
+pubchemDir = "pubchem/Bioassay/Extras"
 pubchemFile = "Aid2GiGeneidAccessionUniprot.gz"
 localArchive = "%s/%s" % (cfg.get('default','tmp'), pubchemFile)
-localFile   = localArchive[:-3]
+localFile = localArchive[:-3]
 
 def downloadFiles():
   logger.log("downloading %s" % pubchemFile)
