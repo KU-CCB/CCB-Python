@@ -47,9 +47,12 @@ def downloadFiles():
 def unzipFiles():
   root,_,files = next(os.walk(zippedFolder))
   for i in range(0, len(files)):
-    logger.log("unzipping file: (%04d/%04d) %s" % (i+1, len(files), files[i]))
-    archive = zipfile.ZipFile(os.path.join(root, files[i]), 'r')
-    archive.extractall(unzippedFolder)
+    try:
+      logger.log("unzipping file: (%04d/%04d) %s" % (i+1, len(files), files[i]))
+      archive = zipfile.ZipFile(os.path.join(root, files[i]), 'r')
+      archive.extractall(unzippedFolder)
+    except zipfile.BadZipfile as e:
+      logger.error(str(e))
 
 def ungzipFiles():
   root,folders,_ = next(os.walk(unzippedFolder))
@@ -64,11 +67,11 @@ def ungzipFiles():
         inf.readline()
         for line in inf:
           line = line.rstrip().split(',')
-          # * Index:        0    2        3      4    5
-          # * Keep the aid, sid, outcome, score, url, comment
+          # * Index:        0    1    2        3      4  
+          # * Keep the aid, sid, cid, outcome, score, url 
           # * Discard everything after column 7 (active concentration and data
           #   specified at ftp://ftp.ncbi.nih.gov/pubchem/Bioactivity/Concise/CSV/README)```
-          activityData.append([aid, line[0], line[2], line[3], line[4], line[5]])
+          activityData.append([aid, line[0], line[1], line[2], line[3], line[4]])
           # * Index:   0       1
           # * Keep the sid and cid
           # * We have to store the sid and cid data from these files in a separate database
@@ -88,6 +91,7 @@ def loadMysqlTable(host, user, passwd, db):
   cursor = cnx.cursor()
   # Disable table keys and lock the Bioassasys table. This will speed up writes since
   # we are making so many LOAD DATA LOCAL INFILE calls.
+  logger.log("disabling keys and locking table Activities");
   try:
     cursor.execute("ALTER TABLE `Activities` DISABLE KEYS;");
     cursor.execute("LOCK TABLES `Activities` WRITE;")
@@ -102,12 +106,12 @@ def loadMysqlTable(host, user, passwd, db):
           "LOAD DATA LOCAL INFILE '%s' REPLACE "
           "INTO TABLE Activities "
           "FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' ("
-          " activity_id,"
+          " assay_id,"
           " substance_id,"
+          " compound_id,"
           " activity_outcome,"
           " activity_score,"
-          " activity_URL,"
-          " activity_comment);" % (os.path.join(root, files[i])))
+          " activity_URL);" % (os.path.join(root, files[i])))
       cursor.execute(query)
     except mysql.connector.Error as e:
       logger.error(str(e))

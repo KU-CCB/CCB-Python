@@ -56,16 +56,6 @@ if hostname is None: hostname = "127.0.0.1"
 
 
 # Run table update scripts
-# DO NOT rearrange these function calls. If you should do so by mistake, the
-# order in which they should be run (which can be found on the github wiki) is:
-#
-# 1. Assay2Gene
-# 2. Activities
-# 3. Substance_id_compound_id
-# 4. Assays
-#
-# There are some files that can run in a different order, but it is best not to
-# change the order at all. 
 plugins.Assay2Gene.update(username, password, database, hostname);
 plugins.Activities.update(username, password, database, hostname);
 plugins.Assays.update(username, password, database, hostname);
