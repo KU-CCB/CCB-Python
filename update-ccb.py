@@ -12,7 +12,7 @@ import getopt
 if socket.gethostname()[-6:] == "ku.edu":
 	sys.path.append('/usr/lib/python2.6/site-packages/')
 import ConfigParser
-import plugins.Aid2GiGeneidAccessionUniprot
+import plugins.Assay2Gene
 import plugins.Activities
 import plugins.Assays
 
@@ -59,14 +59,14 @@ if hostname is None: hostname = "127.0.0.1"
 # DO NOT rearrange these function calls. If you should do so by mistake, the
 # order in which they should be run (which can be found on the github wiki) is:
 #
-# 1. Aid2GiGeneidAccessionUniprot
+# 1. Assay2Gene
 # 2. Activities
 # 3. Substance_id_compound_id
 # 4. Assays
 #
 # There are some files that can run in a different order, but it is best not to
 # change the order at all. 
-plugins.Aid2GiGeneidAccessionUniprot.update(username, password, database, hostname);
+plugins.Assay2Gene.update(username, password, database, hostname);
 plugins.Activities.update(username, password, database, hostname);
 plugins.Assays.update(username, password, database, hostname);
 	

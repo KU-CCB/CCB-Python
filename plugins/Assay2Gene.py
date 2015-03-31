@@ -49,7 +49,7 @@ def loadMysqlTable(host, user, passwd, db):
     query = (
       "LOAD DATA LOCAL INFILE '%s'"
       " REPLACE"
-      " INTO TABLE Aid2GiGeneidAccessionUniprot"
+      " INTO TABLE Assay2Gene"
       " FIELDS TERMINATED BY '\t'"
       " LINES TERMINATED BY '\n'"
       " IGNORE 1 LINES ("

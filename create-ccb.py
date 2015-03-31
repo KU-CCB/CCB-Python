@@ -76,8 +76,8 @@ TYPES = {
 
 TABLES = {
   # Does this table need a foreign key?
-  'Aid2GiGeneidAccessionUniprot': (
-    "CREATE TABLE `Aid2GiGeneidAccessionUniprot` ("
+  'Assay2Gene': (
+    "CREATE TABLE `Assay2Gene` ("
     "`assay_id`       " + TYPES["assay_id"]       + " NOT NULL,"
     "`gi`             " + TYPES["gi"]             + " NOT NULL,"
     "`gene_id`        " + TYPES["gene_id"]        + ","
