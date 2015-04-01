@@ -25,7 +25,6 @@ zippedFolder = "%s/zipped" % activityFolder
 unzippedFolder = "%s/unzipped" % activityFolder
 ungzippedFolder = "%s/ungzipped" % activityFolder
 activityFolderFile = "%s/activities.csv" % ungzippedFolder
-sid2cidMapFile = "%s/sid2cid.csv" % substanceFolder
 
 def makedirs(dirs):
   logger.log("creating directories: %s" % dirs)
@@ -62,7 +61,7 @@ def ungzipFiles():
       logger.log("ungzipping folder (%04d/%04d) file (%04d/%04d) %s" % 
         (i+1, len(folders), j+1, len(gzfiles), gzfiles[j]))
       aid = gzfiles[j][:gzfiles[j].index('.')]
-      sid2cidData, activityData = [], []
+      activityData = [], []
       with gzip.open(os.path.join(root, folders[i], gzfiles[j]), 'rb') as inf:
         inf.readline()
         for line in inf:
@@ -72,19 +71,9 @@ def ungzipFiles():
           # * Discard everything after column 7 (active concentration and data
           #   specified at ftp://ftp.ncbi.nih.gov/pubchem/Bioactivity/Concise/CSV/README)```
           activityData.append([aid, line[0], line[1], line[2], line[3], line[4]])
-          # * Index:   0       1
-          # * Keep the sid and cid
-          # * We have to store the sid and cid data from these files in a separate database
-          #   table, so we'll write the file here and pass it off to the next table:
-          #   Substance_id_compound_id
-          sid2cidData.append([aid, line[0], line[1]])
       with open("%s/%s.csv" % (ungzippedFolder, aid), 'w') as outf:
         for line in activityData:                  
           outf.write(",".join(line)+"\n")
-      with open(sid2cidMapFile, 'a') as outf: 
-        for line in sid2cidData:
-          outf.write(",".join(line)+"\n")
-     
 
 def loadMysqlTable(host, user, passwd, db):
   cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
