@@ -68,7 +68,7 @@ def loadMysqlTable(host, user, passwd, db):
                "INTO TABLE Assay_id_assay_description"
                "FIELDS TERMINATED BY ' ' LINES TERMINATED BY '\n' ("
                "  assay_id,"
-               "  assay_description);"
+               "  assay_description);")
       cursor.execute(query, os.path.join(root, files[i]))
     except mysql.connector.Error as e:
       logger.error("failed loading data: %s" % str(e))

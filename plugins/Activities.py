@@ -86,22 +86,67 @@ def loadMysqlTable(host, user, passwd, db):
     cursor.execute("LOCK TABLES `Activities` WRITE;")
   except mysql.connector.Error as e:
     logger.error(str(e))
-    
+
+  logger.log("loading file names from %s" % ungzippedFolder)
   root,_,files = next(os.walk(ungzippedFolder))
   for i in range(0, len(files)):
+    logger.log("preloading assay ids from file (%08d/%08d) %s into MySQL table Assays"
+      % (i+1, len(files), files[i]))
+    try:
+      cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
+      cursor = cnx.cursor()
+      query = (
+        "LOAD DATA LOCAL INFILE '%s'"
+        " IGNORE"
+        " INTO TABLE Assays"
+        " FIELDS TERMINATED BY '\t'"
+        " LINES TERMINATED BY '\n'"
+        " IGNORE 1 LINES (assay_id);" % (os.path.join(root, files[i])))
+      cursor.execute(query)
+      cnx.commit()
+    except mysql.connector.Error as e:
+      logger.error(str(e))
+    
+    logger.log("preloading substance ids from file (%08d/%08d) %s into MySQL table Substances"
+      % (i+1, len(files), files[i]))
+    try:
+      cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
+      cursor = cnx.cursor()
+      query = (
+        "LOAD DATA LOCAL INFILE '%s'"
+        " IGNORE"
+        " INTO TABLE Substances"
+        " FIELDS TERMINATED BY '\t'"
+        " LINES TERMINATED BY '\n'"
+        " ("
+        "  @assay_id,"
+        "  substance_id,"
+        "  @compoundId) "
+        "SET compound_id = if(@compoundId in ('', ' ', null), 0, @compoundId);"
+        % (os.path.join(root, files[i])))
+      cursor.execute(query)
+      cnx.commit()
+    except mysql.connector.Error as e:
+      logger.error(str(e))
+   
     logger.log("loading files into table (%08d/%08d) %s" % (i+1, len(files), files[i]))
     try:
       query = (
-          "LOAD DATA LOCAL INFILE '%s' REPLACE "
-          "INTO TABLE Activities "
-          "FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' ("
-          " assay_id,"
-          " substance_id,"
-          " compound_id,"
-          " activity_outcome,"
-          " activity_score,"
-          " activity_URL);" % (os.path.join(root, files[i])))
+        "LOAD DATA LOCAL INFILE '%s' REPLACE "
+        "INTO TABLE Activities "
+        "FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' ("
+        " assay_id,"
+        " substance_id,"
+        " @compoundId,"
+        " activity_outcome,"
+        " @activityScore,"
+        " activity_URL) "
+        "SET"
+        " activity_score = if(@activityScore = '', null, @activityScore),"
+        " compound_id = if(@compoundId = '', 0, @compoundId);"
+        % (os.path.join(root, files[i])))
       cursor.execute(query)
+      cnx.commit()
     except mysql.connector.Error as e:
       logger.error(str(e))
 
