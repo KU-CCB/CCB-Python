@@ -41,6 +41,23 @@ def extractFiles():
       for line in inf:
         outf.write(line)
 
+def preloadAssayIds(host, user, passwd, db):
+  logger.log("preloading assay_ids from %s into MySQL table Assays" % localFile)
+  try:
+    cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
+    cursor = cnx.cursor()
+    query = (
+      "LOAD DATA LOCAL INFILE '%s'"
+      " IGNORE"
+      " INTO TABLE Assays"
+      " FIELDS TERMINATED BY '\t'"
+      " LINES TERMINATED BY '\n'"
+      " IGNORE 1 LINES (assay_id);" % (localFile))
+    cursor.execute(query)
+    cnx.commit()
+  except mysql.connector.Error as e:
+    logger.error(str(e))
+
 def loadMysqlTable(host, user, passwd, db):
   logger.log("loading %s into MySQL" % localFile)
   try:
@@ -49,15 +66,18 @@ def loadMysqlTable(host, user, passwd, db):
     query = (
       "LOAD DATA LOCAL INFILE '%s'"
       " REPLACE"
-      " INTO TABLE Assay2Gene"
+      " INTO TABLE TempAssay2Gene"
       " FIELDS TERMINATED BY '\t'"
       " LINES TERMINATED BY '\n'"
       " IGNORE 1 LINES ("
       " assay_id,"
-      " gi,"
-      " gene_id,"
+      " @gi,"
+      " @geneId,"
       " ncbi_accession,"
-      " uniprot_kb);" % (localFile))
+      " uniprot_kb) "
+      "SET"
+      " gene_id = if(@geneId in ('', ' ', NULL), 0, @geneId),"
+      " gi = if(@gi in ('', ' ', NULL), 0, @gi);" % (localFile))
     cursor.execute(query)
     cnx.commit()
   except mysql.connector.Error as e:
@@ -66,9 +86,9 @@ def loadMysqlTable(host, user, passwd, db):
 def update(user, passwd, db, host):
   logger.log("beginning update")
   try:
-    logger.log("starting update")
-    downloadFiles()
-    extractFiles()
+    #downloadFiles()
+    #extractFiles()
+    #preloadAssayIds(host, user, passwd, db)
     loadMysqlTable(host, user, passwd, db)
     logger.log("update complete")
   except Exception as e: # any uncaught errors
