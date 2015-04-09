@@ -1,0 +1,55 @@
+Assay2Gene	CREATE TABLE `Assay2Gene` (
+  `assay_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `gi` int(10) unsigned NOT NULL DEFAULT '0',
+  `gene_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `ncbi_accession` varchar(15) DEFAULT NULL,
+  `uniprot_kb` varchar(15) DEFAULT NULL,
+  `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`assay_id`,`gi`,`gene_id`),
+  KEY `IDX_assay_id` (`assay_id`),
+  KEY `IDX_gene_id` (`gene_id`),
+  CONSTRAINT `FK_assay2gene_assay_id` FOREIGN KEY (`assay_id`) REFERENCES `Assays` (`assay_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+Assays	CREATE TABLE `Assays` (
+  `assay_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `assay_description` text,
+  `assay_comment` text,
+  `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`assay_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED;
+
+Substances	CREATE TABLE `Substances` (
+  `substance_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `compound_id` int(10) unsigned DEFAULT '0',
+  `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`substance_id`),
+  KEY `IDX_compound_id` (`compound_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+Activities	CREATE TABLE `Activities` (
+  `assay_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `substance_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `compound_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `activity_outcome` enum('Inactive','Active','Inconclusive','Unspecified','Probe') DEFAULT NULL,
+  `activity_score` smallint(6) DEFAULT NULL,
+  `activity_URL` varchar(255) DEFAULT NULL,
+  `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`assay_id`,`substance_id`),
+  KEY `IDX_compound_id` (`compound_id`),
+  KEY `IDX_substance_id` (`substance_id`),
+  KEY `IDX_assay_id` (`assay_id`),
+  KEY `FK_substance_id_compound_id_idx` (`substance_id`,`compound_id`),
+  CONSTRAINT `FK_assay_id` FOREIGN KEY (`assay_id`) REFERENCES `Assays` (`assay_id`),
+  CONSTRAINT `FK_substance_id` FOREIGN KEY (`substance_id`) REFERENCES `Substances` (`substance_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED;
+
+UpdateLog	CREATE TABLE `UpdateLog` (
+  `log_id` int(11) NOT NULL AUTO_INCREMENT,
+  `table_name` varchar(31) DEFAULT NULL,
+  `data_id` varchar(63) DEFAULT NULL,
+  `status` char(1) DEFAULT NULL,
+  `error_msg` varchar(255) DEFAULT NULL,
+  `updated_date` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`log_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
