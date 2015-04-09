@@ -13,7 +13,7 @@ import gzip
 import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector.constants import ClientFlag
-
+#from subprocess import call
 import logger
 
 __all__ = ["update"]
@@ -24,6 +24,7 @@ server          = "ftp.ncbi.nih.gov"
 pubchemFolder   = "pubchem/Compound/Extras"
 pubchemFile     = "CID-SID.gz"
 substanceFolder = "%s/substances" % cfg.get('default', 'tmp')
+processedFolder = "%s/processed" % substanceFolder
 localArchive    = "%s/%s" % (substanceFolder, pubchemFile)
 localFile       = localArchive[:-3]
 
@@ -41,35 +42,39 @@ def extractFiles():
     with open(localFile, 'w') as outf:
       for line in inf:
         outf.write(line)
+"""
+def splitFiles():
+  prefix = processedFolder
+  call(["split", "--lines=1000000", "--numeric-suffixes", "--suffix-length=3", prefix])
+"""
 
 def loadMysqlTable(host, user, passwd, db):
   logger.log("connecting to mysql")
   cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
-  logger.log("loading file %s into mysql" % localFile)
-  try:
-    query = (
-      "LOAD DATA LOCAL INFILE '%s'"
-      " REPLACE"
-      " INTO TABLE Substance_id_compound_id"
-      " FIELDS TERMINATED BY '\t'"
-      " LINES TERMINATED BY '\n'"
-      " IGNORE 1 LINES ("
-      " compound_id,"
-      " substance_id,"
-      " @type);" % localFile)
-    cursor.execute(query)
-    cnx.commit()
-  except mysql.connector.Error as e:
-    logger.log("x failed loading data: %s" % str(e))
+  _,_,files = next(os.walk(processedFolder))
+  for i in range(0, len(files)):
+    logger.log("loading file file (%04d/%04d) %s into mysql" % 
+      (i+1, len(files), files[i]))
+    try:
+      query = (
+        "LOAD DATA LOCAL INFILE '%s'"
+        " REPLACE"
+        " INTO TABLE Substances"
+        " FIELDS TERMINATED BY '\t'"
+        " LINES TERMINATED BY '\n'"
+        " ("
+        " compound_id,"
+        " substance_id,"
+        " @type);" % (processedFolder + "/" + files[i]))
+      cursor.execute(query)
+      cnx.commit()
+    except mysql.connector.Error as e:
+      logger.error("x failed loading data: %s" % str(e))
 
 def update(user, passwd, db, host):
   logger.log("beginning update")
-  try:
-    downloadFiles()
-    extractFiles()
-    loadMysqlTable(host, user, passwd, db)
-    logger.log("update complete")
-  except Exception as e:
-    sys.stderr.write(str(e))
-    logger.error(str(e))
+  #downloadFiles()
+  #extractFiles()
+  loadMysqlTable(host, user, passwd, db)
+  logger.log("update complete")
