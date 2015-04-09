@@ -12,6 +12,7 @@ import getopt
 if socket.gethostname()[-6:] == "ku.edu":
 	sys.path.append('/usr/lib/python2.6/site-packages/')
 import ConfigParser
+import plugins.Substances
 import plugins.Assay2Gene
 import plugins.Activities
 import plugins.Assays
@@ -56,7 +57,8 @@ if hostname is None: hostname = "127.0.0.1"
 
 
 # Run table update scripts
+plugins.Substances.update(username, password, database, hostname);
 plugins.Assay2Gene.update(username, password, database, hostname);
-plugins.Activities.update(username, password, database, hostname);
 plugins.Assays.update(username, password, database, hostname);
-	
+plugins.Activities.update(username, password, database, hostname);
+
