@@ -12,10 +12,7 @@ import getopt
 if socket.gethostname()[-6:] == "ku.edu":
 	sys.path.append('/usr/lib/python2.6/site-packages/')
 import ConfigParser
-import plugins.Substances
-import plugins.Assay2Gene
-import plugins.Activities
-import plugins.Assays
+import plugins.incremental_Activities
 
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
@@ -23,7 +20,7 @@ cfg.read("config.cfg")
 def help():
   usage = ""
   print "---------------------------------------------------------"
-  print "%s - The %s database update script" % (__file__, cfg.get('default', 'database'))
+  print "%s - The incremental %s database update script" % (__file__, cfg.get('default', 'database'))
   print "---------------------------------------------------------"
   print "For information, see %s." % (cfg.get('repo', 'url'))
   print "Report issues at %s" % cfg.get('repo', 'issues')
@@ -55,10 +52,5 @@ for option, value in opts:
 
 if hostname is None: hostname = "127.0.0.1"
 
-
 # Run table update scripts
-plugins.Substances.update(username, password, database, hostname);
-plugins.Assay2Gene.update(username, password, database, hostname);
-plugins.Assays.update(username, password, database, hostname);
-plugins.Activities.update(username, password, database, hostname);
-
+plugins.incremental_Activities.update(username, password, database, hostname);
