@@ -7,6 +7,7 @@ from ftplib import FTP
 from datetime import date
 import zipfile
 import gzip
+import math as math
 import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector.constants import ClientFlag
@@ -20,11 +21,12 @@ cfg.read("config.cfg")
 server = "ftp.ncbi.nih.gov"
 pubchemURL = "pubchem/Bioassay/Concise/CSV/Data"
 activityFolder = "%s/activities" % cfg.get('default','tmp')
-substanceFolder = "%s/substances" % cfg.get('default','tmp')
 zippedFolder = "%s/zipped" % activityFolder
 unzippedFolder = "%s/unzipped" % activityFolder
 ungzippedFolder = "%s/ungzipped" % activityFolder
 activityFolderFile = "%s/activities.csv" % ungzippedFolder
+lastQuarterFile = "%s/activities/lastDownload.txt" % cfg.get('default', 'tmp')
+quarter = 0
 
 def makedirs(dirs):
   logger.log("creating directories: %s" % dirs)
@@ -37,10 +39,24 @@ def downloadFiles():
   ftp.login() # anonymous
   ftp.cwd(pubchemURL)
   files = ftp.nlst()
+  logger.log("checking last download");
+  quarterStr = ""
+  if not os.path.isfile(lastQuarterFile):
+    open(lastQuarterFile, 'w+')
+    quarter = 0
+  else:
+    with open(lastQuarterFile, 'r') as ldf:
+      quarterStr = ldf.readline().strip()
+  quarter = 0 if len(quarterStr) == 0 else int(quarterStr)
   logger.log("begin ftp file retrieval at %s" % server + "/" + pubchemURL)
-  for i in range(0, len(files)):
-    logger.log("downloading file: (%04d/%04d) %s" % (i+1, len(files), files[i]))
+  batchSize = int(math.ceil(len(files)/4.))
+  start = quarter * batchSize
+  end = start + batchSize
+  for i in range(start, end):
+    logger.log("downloading file: (%04d/%04d) %s" % (i+1, batchSize, files[i]))
     ftp.retrbinary("RETR %s" % files[i], open("%s/%s" % (zippedFolder, files[i]), 'wb').write)
+  with open(lastQuarterFile, 'w') as ldf:
+    ldf.write(str(quarter));
   ftp.quit()
 
 def unzipFiles():
@@ -61,7 +77,7 @@ def ungzipFiles():
       logger.log("ungzipping folder (%04d/%04d) file (%04d/%04d) %s" % 
         (i+1, len(folders), j+1, len(gzfiles), gzfiles[j]))
       aid = gzfiles[j][:gzfiles[j].index('.')]
-      activityData = [], []
+      activityData = []
       with gzip.open(os.path.join(root, folders[i], gzfiles[j]), 'rb') as inf:
         inf.readline()
         for line in inf:
@@ -167,11 +183,10 @@ def update(user, passwd, db, host):
     activityFolder, 
     zippedFolder, 
     unzippedFolder, 
-    ungzippedFolder, 
-    substanceFolder];
+    ungzippedFolder];
   try:
     makedirs(directories)
-    downloadFiles()
+    # downloadFiles()
     unzipFiles()
     ungzipFiles()
     loadMysqlTable(host, user, passwd, db)
