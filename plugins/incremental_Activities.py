@@ -57,10 +57,9 @@ def downloadFiles():
   logger.log("starting download file %s" % files[start])
   for i in range(start, end):
     logger.log("downloading file: (%04d/%04d) %s" % (i+1, batchSize, files[i]))
+    with open(lastDownloadRecordFile, 'w') as ldf:
+      ldf.write(files[i]);
     ftp.retrbinary("RETR %s" % files[i], open("%s/%s" % (zippedFolder, files[i]), 'wb').write)
-  if 
-  with open(lastDownloadRecordFile, 'w') as ldf:
-    ldf.write(files[end:end+1]);
   ftp.quit()
 
 def unzipFiles():
