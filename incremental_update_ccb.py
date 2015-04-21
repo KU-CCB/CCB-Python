@@ -13,7 +13,7 @@ if socket.gethostname()[-6:] == "ku.edu":
 	sys.path.append('/usr/lib/python2.6/site-packages/')
 import ConfigParser
 import plugins.incremental_Activities
-
+#import plugins.incremental_Assays
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
 
@@ -30,25 +30,12 @@ def help():
   print ""
 
 # Read command line options
-shortargs = "hH:u:p:"
-longargs  = ["help","hostname=","username=","password="]
-opts, args = getopt.getopt(sys.argv[1:], shortargs, longargs)
-hostname, username, password, database = None,None,None,cfg.get('default','database')
-if len(opts) == 0:
-  help()
-  sys.exit()
-for option, value in opts:
-  if option in ("-h", "--help"):
-    help()
-    sys.exit()
-  elif option in ("-u", "--username"):
-    username = value
-  elif option in ("-p", "--password"):
-    password = value
-  elif option in ("-H", "--hostname"):
-    hostname = value
-  else:
-    assert False, "unhandled option"
+
+
+hostname = sys.argv[0]
+username = sys.argv[1]
+password = sys.argv[2]
+database = cfg.get('default','database')
 
 if hostname is None: hostname = "127.0.0.1"
 
