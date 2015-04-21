@@ -25,8 +25,7 @@ zippedFolder = "%s/zipped" % activityFolder
 unzippedFolder = "%s/unzipped" % activityFolder
 ungzippedFolder = "%s/ungzipped" % activityFolder
 activityFolderFile = "%s/activities.csv" % ungzippedFolder
-lastQuarterFile = "%s/activities/lastDownload.txt" % cfg.get('default', 'tmp')
-quarter = 0
+lastDownloadRecordFile = "%s/activities/lastDownload.txt" % cfg.get('default', 'tmp')
 
 def makedirs(dirs):
   logger.log("creating directories: %s" % dirs)
@@ -39,24 +38,29 @@ def downloadFiles():
   ftp.login() # anonymous
   ftp.cwd(pubchemURL)
   files = ftp.nlst()
-  logger.log("checking last download");
-  quarterStr = ""
-  if not os.path.isfile(lastQuarterFile):
-    open(lastQuarterFile, 'w+')
-    quarter = 0
-  else:
-    with open(lastQuarterFile, 'r') as ldf:
-      quarterStr = ldf.readline().strip()
-  quarter = 0 if len(quarterStr) == 0 else int(quarterStr)
-  logger.log("begin ftp file retrieval at %s" % server + "/" + pubchemURL)
   batchSize = int(math.ceil(len(files)/4.))
-  start = quarter * batchSize
+  logger.log("checking last download");
+  lastDownloadedFile = ""
+  start = 0
+  if not os.path.isfile(lastDownloadRecordFile):
+    open(lastDownloadRecordFile, 'w+')
+  else:
+    with open(lastDownloadRecordFile, 'r') as ldf:
+      lastDownloadedFile = ldf.readline().strip()
+      try:
+        start = files.index(lastDownloadedFile) + 1
+      except ValueError: pass;
+  logger.log("begin ftp file retrieval at %s" % server + "/" + pubchemURL)
   end = start + batchSize
+  excess = (end % (len(files) - 1)) % end
+  end = end - excess
+  logger.log("starting download file %s" % files[start])
   for i in range(start, end):
     logger.log("downloading file: (%04d/%04d) %s" % (i+1, batchSize, files[i]))
     ftp.retrbinary("RETR %s" % files[i], open("%s/%s" % (zippedFolder, files[i]), 'wb').write)
-  with open(lastQuarterFile, 'w') as ldf:
-    ldf.write(str(quarter));
+  if 
+  with open(lastDownloadRecordFile, 'w') as ldf:
+    ldf.write(files[end:end+1]);
   ftp.quit()
 
 def unzipFiles():
@@ -186,7 +190,7 @@ def update(user, passwd, db, host):
     ungzippedFolder];
   try:
     makedirs(directories)
-    # downloadFiles()
+    downloadFiles()
     unzipFiles()
     ungzipFiles()
     loadMysqlTable(host, user, passwd, db)
