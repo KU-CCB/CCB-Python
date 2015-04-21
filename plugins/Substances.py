@@ -42,11 +42,10 @@ def extractFiles():
     with open(localFile, 'w') as outf:
       for line in inf:
         outf.write(line)
-"""
+
 def splitFiles():
   prefix = processedFolder
   call(["split", "--lines=1000000", "--numeric-suffixes", "--suffix-length=3", prefix])
-"""
 
 def loadMysqlTable(host, user, passwd, db):
   logger.log("connecting to mysql")
@@ -74,7 +73,8 @@ def loadMysqlTable(host, user, passwd, db):
 
 def update(user, passwd, db, host):
   logger.log("beginning update")
-  #downloadFiles()
-  #extractFiles()
+  downloadFiles()
+  extractFiles()
+  splitFiles():
   loadMysqlTable(host, user, passwd, db)
   logger.log("update complete")
