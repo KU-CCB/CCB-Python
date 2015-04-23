@@ -7,7 +7,6 @@ import zipfile
 import gzip
 import json
 import math
-import pypug
 import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector.constants import ClientFlag
@@ -30,28 +29,7 @@ def makedirs(dirs):
 
 
 def downloadDescriptions(host, user, passwd, db):
-  # Connect to mysql
-  cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, 
-    client_flags=[ClientFlag.LOCAL_FILES])
-  cursor = cnx.cursor()
-  cursor.execute("SELECT DISTINCT(assay_id) FROM Bioassays;")
-
-  # Fetch all aids from the database
-  aids = map(itemgetter(0), cursor.fetchall())
-
-  # Begin downloading all descriptions
-  for i in range(0, len(aids)):
-    logger.log("downloading description for assay (%08d/%08d) %d" %
-        (i+1, len(aids), aids[i]))
-
-    # Skip existing files unless OVERWRITE_EXISTING FILES is True
-    outFileName = "%s/%s.csv" % (assayDescriptionFolder, aids[i])
-    if not os.path.exists(outFileName) or OVERWRITE_EXISTING_FILES:
-      with open(outFileName, 'w') as outfile:
-        response = pypug.getAssayDescriptionFromAID(aids[i]).encode('utf-8')
-        if len(response) > 2:
-          description = json.dumps(json.loads(response), separators=(',', ':'))
-          outfile.write("%s %s" % (aids[i], description))
+  pass
 
 def loadMysqlTable(host, user, passwd, db):
   cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db,
