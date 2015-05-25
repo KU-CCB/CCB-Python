@@ -11,41 +11,49 @@ import ConfigParser
 from ftplib import FTP
 import gzip
 import mysql.connector
+from subprocess import call
 from mysql.connector import errorcode
 from mysql.connector.constants import ClientFlag
-#from subprocess import call
 import logger
 
 __all__ = ["update"]
 plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
-server          = "ftp.ncbi.nih.gov"
-pubchemFolder   = "pubchem/Compound/Extras"
-pubchemFile     = "CID-SID.gz"
+file = "CID-SID.gz"
 substanceFolder = "%s/substances" % cfg.get('default', 'tmp')
 processedFolder = "%s/processed" % substanceFolder
-localArchive    = "%s/%s" % (substanceFolder, pubchemFile)
-localFile       = localArchive[:-3]
+archive = "%s/%s" % (substanceFolder, file)
+extractedFile = archive[:-3]
+
+def mkdirs():
+  for directory in ["data/substances/processed/"]:
+    if not os.path.exists(directory):
+      os.makedirs(directory)
 
 def downloadFiles():
-  logger.log("downloading %s from %s" % (pubchemFile, server))
+  server = "ftp.ncbi.nih.gov"
+  folder = "pubchem/Compound/Extras"
+  logger.log("downloading %s from %s" % (file, server))
   ftp = FTP(server)
   ftp.login() # anonymous
-  ftp.cwd(pubchemFolder)
-  ftp.retrbinary("RETR %s" % pubchemFile, open(localArchive, 'wb').write)
+  ftp.cwd(folder)
+  ftp.retrbinary("RETR %s" % file, open(archive, 'wb').write)
   ftp.quit()
 
 def extractFiles():
-  logger.log("extracting %s to %s" % (localArchive, localFile))
-  with gzip.open(localArchive, 'rb') as inf:
-    with open(localFile, 'w') as outf:
+  logger.log("extracting %s to %s" % (archive, extractedFile))
+  with gzip.open(archive, 'rb') as inf:
+    with open(extractedFile, 'w') as outf:
       for line in inf:
         outf.write(line)
 
 def splitFiles():
-  prefix = processedFolder
-  call(["split", "--lines=1000000", "--numeric-suffixes", "--suffix-length=3", prefix])
+  chunkSize = "1000000"
+  suffixLen = "3"
+  prefix = "%s/" % processedFolder
+  logger.log("splitting %s into %s-line files" % (extractedFile, chunkSize))
+  call(["split", extractedFile, "-l", chunkSize, "-d", "-a", suffixLen, prefix])
 
 def loadMysqlTable(host, user, passwd, db):
   logger.log("connecting to mysql")
@@ -53,7 +61,7 @@ def loadMysqlTable(host, user, passwd, db):
   cursor = cnx.cursor()
   _,_,files = next(os.walk(processedFolder))
   for i in range(0, len(files)):
-    logger.log("loading file file (%04d/%04d) %s into mysql" % 
+    logger.log("loading file (%04d/%04d) %s into mysql" % 
       (i+1, len(files), files[i]))
     try:
       query = (
@@ -73,8 +81,9 @@ def loadMysqlTable(host, user, passwd, db):
 
 def update(user, passwd, db, host):
   logger.log("beginning update")
+  mkdirs()
   downloadFiles()
   extractFiles()
-  splitFiles():
+  splitFiles()
   loadMysqlTable(host, user, passwd, db)
   logger.log("update complete")
