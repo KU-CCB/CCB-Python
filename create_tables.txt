@@ -1,4 +1,13 @@
-Assay2Gene	CREATE TABLE `Assay2Gene` (
+CREATE TABLE `Assays` (
+  `assay_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `assay_description` text,
+  `assay_comment` text,
+  `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`assay_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED;
+
+
+CREATE TABLE `Assay2Gene` (
   `assay_id` int(10) unsigned NOT NULL DEFAULT '0',
   `gi` int(10) unsigned NOT NULL DEFAULT '0',
   `gene_id` int(10) unsigned NOT NULL DEFAULT '0',
@@ -11,15 +20,7 @@ Assay2Gene	CREATE TABLE `Assay2Gene` (
   CONSTRAINT `FK_assay2gene_assay_id` FOREIGN KEY (`assay_id`) REFERENCES `Assays` (`assay_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-Assays	CREATE TABLE `Assays` (
-  `assay_id` int(10) unsigned NOT NULL DEFAULT '0',
-  `assay_description` text,
-  `assay_comment` text,
-  `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`assay_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED;
-
-Substances	CREATE TABLE `Substances` (
+CREATE TABLE `Substances` (
   `substance_id` int(10) unsigned NOT NULL DEFAULT '0',
   `compound_id` int(10) unsigned DEFAULT '0',
   `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -27,7 +28,7 @@ Substances	CREATE TABLE `Substances` (
   KEY `IDX_compound_id` (`compound_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-Activities	CREATE TABLE `Activities` (
+CREATE TABLE `Activities` (
   `assay_id` int(10) unsigned NOT NULL DEFAULT '0',
   `substance_id` int(10) unsigned NOT NULL DEFAULT '0',
   `compound_id` int(10) unsigned NOT NULL DEFAULT '0',
@@ -44,7 +45,7 @@ Activities	CREATE TABLE `Activities` (
   CONSTRAINT `FK_substance_id` FOREIGN KEY (`substance_id`) REFERENCES `Substances` (`substance_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED;
 
-UpdateLog	CREATE TABLE `UpdateLog` (
+CREATE TABLE `UpdateLog` (
   `log_id` int(11) NOT NULL AUTO_INCREMENT,
   `table_name` varchar(31) DEFAULT NULL,
   `data_id` varchar(63) DEFAULT NULL,
