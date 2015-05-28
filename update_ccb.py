@@ -15,7 +15,7 @@ import ConfigParser
 import plugins.Substances
 import plugins.Assay2Gene
 import plugins.Activities
-import plugins.Assays
+#import plugins.Assays
 
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
