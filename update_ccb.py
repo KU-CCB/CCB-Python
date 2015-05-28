@@ -50,5 +50,5 @@ for option, value in opts:
 # Run table update scripts
 plugins.Substances.update(username, password, database, hostname);
 plugins.Assay2Gene.update(username, password, database, hostname);
-plugins.Assays.update(username, password, database, hostname);
+##plugins.Assays.update(username, password, database, hostname);
 plugins.Activities.update(username, password, database, hostname);
