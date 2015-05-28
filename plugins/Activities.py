@@ -17,8 +17,6 @@ __all__ = ["update"]
 plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
-server = "ftp.ncbi.nih.gov"
-pubchemURL = "pubchem/Bioassay/Concise/CSV/Data"
 activityFolder = "%s/activities" % cfg.get('default','tmp')
 substanceFolder = "%s/substances" % cfg.get('default','tmp')
 zippedFolder = "%s/zipped" % activityFolder
@@ -33,11 +31,13 @@ def makedirs(dirs):
       os.makedirs(d)
 
 def downloadFiles():
+  server = "ftp.ncbi.nih.gov"
+  folder = "pubchem/Bioassay/Concise/CSV/Data"
   ftp = FTP(server)
   ftp.login() # anonymous
-  ftp.cwd(pubchemURL)
+  ftp.cwd(folder)
   files = ftp.nlst()
-  logger.log("begin ftp file retrieval at %s" % server + "/" + pubchemURL)
+  logger.log("begin ftp file retrieval at %s" % (server + "/" + pubchemURL))
   for i in range(0, len(files)):
     logger.log("downloading file: (%04d/%04d) %s" % (i+1, len(files), files[i]))
     ftp.retrbinary("RETR %s" % files[i], open("%s/%s" % (zippedFolder, files[i]), 'wb').write)
@@ -66,10 +66,9 @@ def ungzipFiles():
         inf.readline()
         for line in inf:
           line = line.rstrip().split(',')
-          # * Index:        0    1    2        3      4  
-          # * Keep the aid, sid, cid, outcome, score, url 
-          # * Discard everything after column 7 (active concentration and data
-          #   specified at ftp://ftp.ncbi.nih.gov/pubchem/Bioactivity/Concise/CSV/README)```
+          # Keep the aid, sid (idx 0), cid (idx 1), outcome (idx 2), score 
+          # (idx 3), and url (idx 4). Discard everything after column 7 (active 
+          # concentration and other data).
           activityData.append([aid, line[0], line[1], line[2], line[3], line[4]])
       with open("%s/%s.csv" % (ungzippedFolder, aid), 'w') as outf:
         for line in activityData:                  
