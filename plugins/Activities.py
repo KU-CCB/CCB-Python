@@ -18,7 +18,6 @@ plugin = __name__[__name__.index('.')+1:] if __name__ != "__main__"  else "main"
 cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
 activityFolder = "%s/activities" % cfg.get('default','tmp')
-substanceFolder = "%s/substances" % cfg.get('default','tmp')
 zippedFolder = "%s/zipped" % activityFolder
 unzippedFolder = "%s/unzipped" % activityFolder
 ungzippedFolder = "%s/ungzipped" % activityFolder
@@ -33,18 +32,23 @@ def makedirs(dirs):
 def downloadFiles():
   server = "ftp.ncbi.nih.gov"
   folder = "pubchem/Bioassay/Concise/CSV/Data"
+  mode = "wb"
+
+  logger.log("connection to ftp server at %s" % server)
   ftp = FTP(server)
-  ftp.login() # anonymous
+  ftp.login()
   ftp.cwd(folder)
   files = ftp.nlst()
-  logger.log("begin ftp file retrieval at %s" % (server + "/" + folder))
+  logger.log("starting ftp file retrieval at %s" % folder)
   for i in range(0, len(files)):
-    logger.log("downloading file: (%04d/%04d) %s" % (i+1, len(files), files[i]))
-    ftp.retrbinary("RETR %s" % files[i], open("%s/%s" % (zippedFolder, files[i]), 'wb').write)
+    logger.log("downloading file (%04d/%04d): %s" % (i+1, len(files), files[i]))
+    fileName = "%s/%s" % (zippedFolder, files[i])
+    ftp.retrbinary("RETR %s" % files[i], open(fileName, mode).write)
   ftp.quit()
 
+
 def unzipFiles():
-  root,_,files = next(os.walk(zippedFolder))
+  root, _, files = next(os.walk(zippedFolder))
   for i in range(0, len(files)):
     try:
       logger.log("unzipping file: (%04d/%04d) %s" % (i+1, len(files), files[i]))
@@ -77,7 +81,6 @@ def ungzipFiles():
         logger.error(e)
       finally:
         f.close()
-
 
 def loadMysqlTable(host, user, passwd, db):
   cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
@@ -162,17 +165,12 @@ def loadMysqlTable(host, user, passwd, db):
 
 def update(user, passwd, db, host):
   logger.log("beginning update")
-  directories = [
-    activityFolder, 
-    zippedFolder, 
-    unzippedFolder, 
-    ungzippedFolder, 
-    substanceFolder];
+  directories = [activityFolder, zippedFolder, unzippedFolder, ungzippedFolder];
   try:
-    #makedirs(directories)
-    #downloadFiles()
-    #unzipFiles()
-    #ungzipFiles()
+    os.makedirs(directories)
+    downloadFiles()
+    unzipFiles()
+    ungzipFiles()
     loadMysqlTable(host, user, passwd, db)
     logger.log("update complete")
   except Exception as e: # Any uncaught errors
