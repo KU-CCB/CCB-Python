@@ -57,34 +57,42 @@ def unzipFiles():
       archivePath = os.path.join(root, files[i])
       archive = zipfile.ZipFile(archivePath, mode)
       archive.extractall(unzippedFolder)
-    except zipfile.BadZipfile as e:
-      logger.error(str(e))
+    except zipfile.BadZipfile as e: logger.error(str(e));
 
 
 def ungzipFiles():
-  root,folders,_ = next(os.walk(unzippedFolder))
+  root, folders, _ = next(os.walk(unzippedFolder))
+  f = None
+
+  # Loop over all gzipped folders and files.  If the file can't be opened for 
+  # reason, discard it and move on. data can be lost here
+
   for i in range(0, len(folders)):
-    _,_,gzfiles = next(os.walk(os.path.join(root, folders[i])))
+    folder = os.path.join(root, folders[i])
+    _, _, gzfiles = next(os.walk(folder))
+    logger.log("ungzipping folder (%04d/%04d) file (%04d/%04d) %s" % 
+      (i+1, len(folders), j+1, len(gzfiles), gzfiles[j]))
+ 
     for j in range(0, len(gzfiles)):
-      logger.log("ungzipping folder (%04d/%04d) file (%04d/%04d) %s" % 
-        (i+1, len(folders), j+1, len(gzfiles), gzfiles[j]))
+      data = []
       aid = gzfiles[j][:gzfiles[j].index('.')]
-      activityData = []
-      try:
-        filePath = os.path.join(root, folders[i], gzfiles[j])
-        f = gzip.open(filePath, 'rb')
-        f.readline()
-        for line in f:
-          line = line.rstrip().split(',')
-          # aid, sid (idx 0), cid (idx 1), outcome (idx 2), score (idx 3), url (idx 4).
-          activityData.append([aid, line[0], line[1], line[2], line[3], line[4]])
-        with open("%s/%s.csv" % (ungzippedFolder, aid), 'w') as outf:
-          for line in activityData:                  
-            outf.write(",".join(line)+"\n")
-      except (OSError, IOError) as e:
+      filePath = os.path.join(root, folders[i], gzfiles[j])
+
+      try: f = gzip.open(filePath, 'rb');
+      except (OSError, IOError) as e: 
         logger.error(e)
-      finally:
-        f.close()
+        continue
+      finally: f.close();
+
+      f.readline()
+      for line in f:
+        line = line.rstrip().split(',')
+        fields = [aid] + lines[0:5] # [aid, sid, cid, outcome, score, url]
+        data.append(fields)
+      with open("%s/%s.csv" % (ungzippedFolder, aid), 'w') as outf:
+        for line in data:                  
+          outf.write(",".join(line)+"\n")
+
 
 def loadMysqlTable(host, user, passwd, db):
   cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
@@ -101,7 +109,7 @@ def loadMysqlTable(host, user, passwd, db):
     logger.error(str(e))
 
   logger.log("loading file names from %s" % ungzippedFolder)
-  root,_,files = next(os.walk(ungzippedFolder))
+  root, _, files = next(os.walk(ungzippedFolder))
 
   for i in range(0, len(files)):
     logger.log("preloading assay ids from file (%08d/%08d) %s into MySQL table Assays"
@@ -172,8 +180,8 @@ def update(user, passwd, db, host):
   directories = [activityFolder, zippedFolder, unzippedFolder, ungzippedFolder];
   try:
     os.makedirs(directories)
-    downloadFiles()
-    unzipFiles()
+    #downloadFiles()
+    #unzipFiles()
     ungzipFiles()
     loadMysqlTable(host, user, passwd, db)
     logger.log("update complete")
