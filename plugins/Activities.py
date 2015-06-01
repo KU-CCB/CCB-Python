@@ -37,7 +37,7 @@ def downloadFiles():
   ftp.login() # anonymous
   ftp.cwd(folder)
   files = ftp.nlst()
-  logger.log("begin ftp file retrieval at %s" % (server + "/" + pubchemURL))
+  logger.log("begin ftp file retrieval at %s" % (server + "/" + folder))
   for i in range(0, len(files)):
     logger.log("downloading file: (%04d/%04d) %s" % (i+1, len(files), files[i]))
     ftp.retrbinary("RETR %s" % files[i], open("%s/%s" % (zippedFolder, files[i]), 'wb').write)
@@ -61,67 +61,66 @@ def ungzipFiles():
       logger.log("ungzipping folder (%04d/%04d) file (%04d/%04d) %s" % 
         (i+1, len(folders), j+1, len(gzfiles), gzfiles[j]))
       aid = gzfiles[j][:gzfiles[j].index('.')]
-      activityData = [], []
-      with gzip.open(os.path.join(root, folders[i], gzfiles[j]), 'rb') as inf:
-        inf.readline()
-        for line in inf:
+      activityData = []
+      try:
+        filePath = os.path.join(root, folders[i], gzfiles[j])
+        f = gzip.open(filePath, 'rb')
+        f.readline()
+        for line in f:
           line = line.rstrip().split(',')
-          # Keep the aid, sid (idx 0), cid (idx 1), outcome (idx 2), score 
-          # (idx 3), and url (idx 4). Discard everything after column 7 (active 
-          # concentration and other data).
+          # aid, sid (idx 0), cid (idx 1), outcome (idx 2), score (idx 3), url (idx 4).
           activityData.append([aid, line[0], line[1], line[2], line[3], line[4]])
-      with open("%s/%s.csv" % (ungzippedFolder, aid), 'w') as outf:
-        for line in activityData:                  
-          outf.write(",".join(line)+"\n")
+        with open("%s/%s.csv" % (ungzippedFolder, aid), 'w') as outf:
+          for line in activityData:                  
+            outf.write(",".join(line)+"\n")
+      except (OSError, IOError) as e:
+        logger.error(e)
+      finally:
+        f.close()
+
 
 def loadMysqlTable(host, user, passwd, db):
   cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
   cursor = cnx.cursor()
-  # Disable table keys and lock the Bioassasys table. This will speed up writes since
-  # we are making so many LOAD DATA LOCAL INFILE calls.
   logger.log("disabling keys and locking table Activities");
+
+  # Disable table keys and lock the Bioassasys table. This will speed up writes since
+  # we are making so many LOAD DATA LOCAL INFILE calls. 
   try:
-    cursor.execute("ALTER TABLE `Activities` DISABLE KEYS;");
-    cursor.execute("LOCK TABLES `Activities` WRITE;")
+    cursor.execute("ALTER TABLE Activities DISABLE KEYS;");
+    cursor.execute("LOCK TABLES Activities, Substances, Assays WRITE;")
+    cnx.commit()
   except mysql.connector.Error as e:
     logger.error(str(e))
 
   logger.log("loading file names from %s" % ungzippedFolder)
   root,_,files = next(os.walk(ungzippedFolder))
+
   for i in range(0, len(files)):
     logger.log("preloading assay ids from file (%08d/%08d) %s into MySQL table Assays"
-      % (i+1, len(files), files[i]))
+      % (i+1, len(files), files[i]))  
     try:
-      cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
-      cursor = cnx.cursor()
-      query = (
-        "LOAD DATA LOCAL INFILE '%s'"
-        " IGNORE"
-        " INTO TABLE Assays"
-        " FIELDS TERMINATED BY '\t'"
-        " LINES TERMINATED BY '\n'"
-        " IGNORE 1 LINES (assay_id);" % (os.path.join(root, files[i])))
+      aid = int(files[i].split('.')[0])
+      query = "INSERT IGNORE INTO Assays(assay_id) VALUES(" + str(aid) + ")"
       cursor.execute(query)
       cnx.commit()
     except mysql.connector.Error as e:
       logger.error(str(e))
-    
+  
     logger.log("preloading substance ids from file (%08d/%08d) %s into MySQL table Substances"
       % (i+1, len(files), files[i]))
     try:
-      cnx = mysql.connector.connect(host=host, user=user, passwd=passwd, db=db, client_flags=[ClientFlag.LOCAL_FILES])
-      cursor = cnx.cursor()
       query = (
         "LOAD DATA LOCAL INFILE '%s'"
         " IGNORE"
         " INTO TABLE Substances"
-        " FIELDS TERMINATED BY '\t'"
-        " LINES TERMINATED BY '\n'"
-        " ("
+        " FIELDS TERMINATED BY ','"
+        " LINES TERMINATED BY '\n' ("
         "  @assay_id,"
         "  substance_id,"
         "  @compoundId) "
-        "SET compound_id = if(@compoundId in ('', ' ', null), 0, @compoundId);"
+        "SET"
+        " compound_id = if(@compoundId in ('', ' ', null), 0, @compoundId);"
         % (os.path.join(root, files[i])))
       cursor.execute(query)
       cnx.commit()
@@ -133,7 +132,8 @@ def loadMysqlTable(host, user, passwd, db):
       query = (
         "LOAD DATA LOCAL INFILE '%s' REPLACE "
         "INTO TABLE Activities "
-        "FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' ("
+        "FIELDS TERMINATED BY ',' "
+        "LINES TERMINATED BY '\n' ("
         " assay_id,"
         " substance_id,"
         " @compoundId,"
@@ -169,12 +169,12 @@ def update(user, passwd, db, host):
     ungzippedFolder, 
     substanceFolder];
   try:
-    makedirs(directories)
-    downloadFiles()
-    unzipFiles()
-    ungzipFiles()
+    #makedirs(directories)
+    #downloadFiles()
+    #unzipFiles()
+    #ungzipFiles()
     loadMysqlTable(host, user, passwd, db)
     logger.log("update complete")
   except Exception as e: # Any uncaught errors
     sys.stderr.write(str(e))
-    logger.error(str(e)) 
+    logger.error(str(e))
