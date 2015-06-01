@@ -43,10 +43,14 @@ def downloadFiles():
 
 def extractFiles():
   logger.log("extracting %s to %s" % (archive, extractedFile))
-  with gzip.open(archive, 'rb') as inf:
+  try:
+    f = gzip.open(archive, 'rb') 
     with open(extractedFile, 'w') as outf:
-      for line in inf:
-        outf.write(line)
+      for line in f: outf.write(line);
+  except (OSError, IOError) as e:
+    logger.error(str(e))
+  finally:
+    f.close()	
 
 def splitFiles():
   chunkSize = "1000000"
