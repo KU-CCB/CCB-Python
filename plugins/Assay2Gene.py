@@ -36,10 +36,14 @@ def downloadFiles():
 
 def extractFiles():
   logger.log("extracting %s" % localArchive)
-  with gzip.open(localArchive, 'rb') as inf:
+  try:
+    f = gzip.open(localArchive, 'rb')
     with open(localFile, 'w') as outf:
-      for line in inf:
-        outf.write(line)
+      for line in f: outf.write(line);
+  except (OSError, IOError) as e:
+    logger.error(str(e))
+  finally:
+    f.close()
 
 def preloadAssayIds(host, user, passwd, db):
   logger.log("preloading assay_ids from %s into MySQL table Assays" % localFile)
@@ -66,7 +70,7 @@ def loadMysqlTable(host, user, passwd, db):
     query = (
       "LOAD DATA LOCAL INFILE '%s'"
       " REPLACE"
-      " INTO TABLE TempAssay2Gene"
+      " INTO TABLE Assay2Gene"
       " FIELDS TERMINATED BY '\t'"
       " LINES TERMINATED BY '\n'"
       " IGNORE 1 LINES ("
@@ -86,9 +90,9 @@ def loadMysqlTable(host, user, passwd, db):
 def update(user, passwd, db, host):
   logger.log("beginning update")
   try:
-    #downloadFiles()
-    #extractFiles()
-    #preloadAssayIds(host, user, passwd, db)
+    downloadFiles()
+    extractFiles()
+    preloadAssayIds(host, user, passwd, db)
     loadMysqlTable(host, user, passwd, db)
     logger.log("update complete")
   except Exception as e: # any uncaught errors
