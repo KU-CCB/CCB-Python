@@ -49,13 +49,17 @@ def downloadFiles():
 
 def unzipFiles():
   root, _, files = next(os.walk(zippedFolder))
+  mode = "r"
+  
   for i in range(0, len(files)):
+    logger.log("unzipping file: (%04d/%04d) %s" % (i+1, len(files), files[i]))
     try:
-      logger.log("unzipping file: (%04d/%04d) %s" % (i+1, len(files), files[i]))
-      archive = zipfile.ZipFile(os.path.join(root, files[i]), 'r')
+      archivePath = os.path.join(root, files[i])
+      archive = zipfile.ZipFile(archivePath, mode)
       archive.extractall(unzippedFolder)
     except zipfile.BadZipfile as e:
       logger.error(str(e))
+
 
 def ungzipFiles():
   root,folders,_ = next(os.walk(unzippedFolder))
