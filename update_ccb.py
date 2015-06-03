@@ -21,9 +21,9 @@ cfg = ConfigParser.ConfigParser()
 cfg.read("config.cfg")
 
 def help():
-  print ""
-  print "Usage: python %s [-H|--hostname=127.0.0.1] [-u|--username] [-p|--password]" % __file__
-  print ""
+  print""
+  print"Usage: python %s [-H|--hostname=127.0.0.1] [-u|--username] [-p|--password]" % __file__
+  print""
 
 # Read command line options
 shortargs = "hH:u:p:"
@@ -50,5 +50,5 @@ for option, value in opts:
 # Run table update scripts
 plugins.Substances.update(username, password, database, hostname);
 plugins.Assay2Gene.update(username, password, database, hostname);
-##plugins.Assays.update(username, password, database, hostname);
+#plugins.Assays.update(username, password, database, hostname);
 plugins.Activities.update(username, password, database, hostname);
