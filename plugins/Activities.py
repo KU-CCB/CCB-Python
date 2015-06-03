@@ -70,14 +70,14 @@ def ungzipFiles():
   for i in range(0, len(folders)):
     folder = os.path.join(root, folders[i])
     _, _, gzfiles = next(os.walk(folder))
-    logger.log("ungzipping folder (%04d/%04d) file (%04d/%04d) %s" % 
-      (i+1, len(folders), j+1, len(gzfiles), gzfiles[j]))
- 
+
     for j in range(0, len(gzfiles)):
       data = []
       aid = gzfiles[j][:gzfiles[j].index('.')]
       filePath = os.path.join(root, folders[i], gzfiles[j])
 
+      logger.log("ungzipping folder (%04d/%04d) file (%04d/%04d) %s" % 
+        (i+1, len(folders), j+1, len(gzfiles), gzfiles[j]))
       try: f = gzip.open(filePath, 'rb');
       except (OSError, IOError) as e: 
         logger.error(e)
@@ -177,9 +177,9 @@ def loadMysqlTable(host, user, passwd, db):
 
 def update(user, passwd, db, host):
   logger.log("beginning update")
-  directories = [activityFolder, zippedFolder, unzippedFolder, ungzippedFolder];
+  directories = [activityFolder, zippedFolder, unzippedFolder, ungzippedFolder]
   try:
-    os.makedirs(directories)
+    makedirs(directories)
     #downloadFiles()
     #unzipFiles()
     ungzipFiles()
